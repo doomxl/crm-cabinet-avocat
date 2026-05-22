@@ -1,0 +1,218 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ facture.numero }} - CRM Cabinet{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ path('dashboard_index') }}">Accueil</a></li>
+<li class="breadcrumb-item"><a href="{{ path('facture_index') }}">Honoraires</a></li>
+<li class="breadcrumb-item active">{{ facture.numero }}</li>
+{% endblock %}
+{% block content %}
+<div x-data="factureDetail({{ facture.id }})" x-init="init()">
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+        <h4 class="fw-bold mb-1"><i class="fa fa-file-invoice-dollar text-success me-2"></i>{{ facture.numero }}</h4>
+        <span class="badge {{ facture.statut.badgeClass() }}">{{ facture.statut.label() }}</span>
+        <span class="badge bg-light text-dark border ms-1">{{ facture.typeDocument.label() }}</span>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="/api/factures/{{ facture.id }}/pdf" class="btn btn-sm btn-outline-danger"><i class="fa fa-file-pdf me-1"></i>PDF</a>
+        <a href="/api/factures/{{ facture.id }}/docx" class="btn btn-sm btn-outline-primary"><i class="fa fa-file-word me-1"></i>Word</a>
+        <a href="{{ path('facture_edit', {id: facture.id}) }}" class="btn btn-sm btn-outline-secondary"><i class="fa fa-pencil me-1"></i>Modifier</a>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-4">
+        <div class="card mb-3">
+            <div class="card-header">Informations</div>
+            <div class="card-body">
+                <dl class="row small mb-0">
+                    <dt class="col-5 text-muted">Client</dt>
+                    <dd class="col-7"><a href="/clients/{{ facture.client.id }}" class="text-decoration-none">{{ facture.client.nomComplet }}</a></dd>
+                    {% if facture.dossier %}
+                    <dt class="col-5 text-muted">Dossier</dt>
+                    <dd class="col-7"><a href="/dossiers/{{ facture.dossier.id }}" class="text-decoration-none">{{ facture.dossier.titre|slice(0,30) }}</a></dd>
+                    {% endif %}
+                    <dt class="col-5 text-muted">Date</dt>
+                    <dd class="col-7">{{ facture.dateEmission|date('d/m/Y') }}</dd>
+                    <dt class="col-5 text-muted">Règlement</dt>
+                    <dd class="col-7">{{ facture.modeReglement.value }}</dd>
+                </dl>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header">Résumé financier</div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="small text-muted">Montant HT</span>
+                    <span class="small fw-semibold">{{ facture.montantHt|number_format(2, ',', ' ') }} €</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="small text-muted">TVA ({{ facture.tauxTva }} %)</span>
+                    <span class="small">{{ (facture.montantHt * facture.tauxTva / 100)|number_format(2, ',', ' ') }} €</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2 border-top pt-2">
+                    <span class="fw-semibold">Total TTC</span>
+                    <span class="fw-bold">{{ facture.montantTtc|number_format(2, ',', ' ') }} €</span>
+                </div>
+                {% if facture.provision > 0 %}
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="small text-muted">Provision</span>
+                    <span class="small text-success">- {{ facture.provision|number_format(2, ',', ' ') }} €</span>
+                </div>
+                {% endif %}
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="small text-muted">Payé</span>
+                    <span class="small text-success" x-text="'-' + montantPaye.toLocaleString('fr-FR', {style:'currency',currency:'EUR'})">— €</span>
+                </div>
+                <div class="d-flex justify-content-between border-top pt-2">
+                    <span class="fw-semibold text-danger">Solde dû</span>
+                    <span class="fw-bold text-danger" x-text="soldeRestant.toLocaleString('fr-FR', {style:'currency',currency:'EUR'})">— €</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <!-- Lignes -->
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Lignes de facturation</span>
+                <button class="btn btn-sm btn-outline-primary" @click="showAddLigne = !showAddLigne"><i class="fa fa-plus me-1"></i>Ajouter</button>
+            </div>
+            <div class="card-body p-0" x-show="showAddLigne">
+                <div class="p-3 border-bottom bg-light">
+                    <div class="row g-2">
+                        <div class="col-md-5"><input class="form-control form-control-sm" x-model="newLigne.description" placeholder="Description"></div>
+                        <div class="col-md-2"><input type="number" class="form-control form-control-sm" x-model="newLigne.quantite" placeholder="Qté" step="0.01"></div>
+                        <div class="col-md-2"><input type="number" class="form-control form-control-sm" x-model="newLigne.prixUnitaire" placeholder="Prix/U" step="0.01"></div>
+                        <div class="col-md-2"><input class="form-control form-control-sm" x-model="newLigne.unite" placeholder="Unité"></div>
+                        <div class="col-md-1"><button class="btn btn-sm btn-primary w-100" @click="addLigne()"><i class="fa fa-check"></i></button></div>
+                    </div>
+                </div>
+            </div>
+            <table class="table table-sm mb-0">
+                <thead><tr><th>Description</th><th>Qté</th><th>Prix/U</th><th>Unité</th><th>Total</th><th></th></tr></thead>
+                <tbody>
+                    <template x-for="l in lignes" :key="l.id">
+                        <tr>
+                            <td class="small" x-text="l.description"></td>
+                            <td class="small" x-text="l.quantite"></td>
+                            <td class="small" x-text="l.prixUnitaire.toLocaleString('fr-FR', {style:'currency',currency:'EUR'})"></td>
+                            <td class="small" x-text="l.unite"></td>
+                            <td class="small fw-semibold" x-text="l.montantTotal.toLocaleString('fr-FR', {style:'currency',currency:'EUR'})"></td>
+                            <td><button class="btn btn-xs btn-outline-danger" @click="deleteLigne(l.id)"><i class="fa fa-times"></i></button></td>
+                        </tr>
+                    </template>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paiements -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Paiements</span>
+                <button class="btn btn-sm btn-outline-success" @click="showAddPaiement = !showAddPaiement"><i class="fa fa-plus me-1"></i>Enregistrer paiement</button>
+            </div>
+            <div class="card-body p-0" x-show="showAddPaiement">
+                <div class="p-3 border-bottom bg-light">
+                    <div class="row g-2">
+                        <div class="col-md-3"><input type="date" class="form-control form-control-sm" x-model="newPaiement.datePaiement"></div>
+                        <div class="col-md-3"><input type="number" class="form-control form-control-sm" x-model="newPaiement.montant" placeholder="Montant" step="0.01"></div>
+                        <div class="col-md-3">
+                            <select class="form-select form-select-sm" x-model="newPaiement.modeReglement">
+                                <option value="">Mode de règlement</option>
+                                <option value="Virement">Virement</option>
+                                <option value="Chèque">Chèque</option>
+                                <option value="Espèces">Espèces</option>
+                                <option value="Carte bancaire">Carte bancaire</option>
+                                <option value="Prélèvement">Prélèvement</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3"><input class="form-control form-control-sm" x-model="newPaiement.reference" placeholder="Référence"></div>
+                    </div>
+                    <div class="mt-2 text-end">
+                        <button class="btn btn-sm btn-success" @click="addPaiement()">Enregistrer</button>
+                    </div>
+                </div>
+            </div>
+            <table class="table table-sm mb-0">
+                <thead><tr><th>Date</th><th>Montant</th><th>Mode</th><th>Référence</th><th></th></tr></thead>
+                <tbody>
+                    <template x-if="paiements.length === 0">
+                        <tr><td colspan="5" class="text-center text-muted small py-3">Aucun paiement enregistré</td></tr>
+                    </template>
+                    <template x-for="p in paiements" :key="p.id">
+                        <tr>
+                            <td class="small" x-text="new Date(p.datePaiement).toLocaleDateString('fr-FR')"></td>
+                            <td class="small fw-semibold text-success" x-text="p.montant.toLocaleString('fr-FR', {style:'currency',currency:'EUR'})"></td>
+                            <td class="small" x-text="p.modeReglement || '—'"></td>
+                            <td class="small" x-text="p.reference || '—'"></td>
+                            <td><button class="btn btn-xs btn-outline-danger" @click="deletePaiement(p.id)"><i class="fa fa-times"></i></button></td>
+                        </tr>
+                    </template>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</div>
+{% endblock %}
+{% block javascripts %}
+<script>
+function factureDetail(factureId) {
+    return {
+        lignes: [], paiements: [],
+        montantPaye: 0, soldeRestant: 0,
+        showAddLigne: false, showAddPaiement: false,
+        newLigne: {description:'', quantite:1, prixUnitaire:0, unite:'forfait'},
+        newPaiement: {datePaiement: new Date().toISOString().split('T')[0], montant:0, modeReglement:'Virement', reference:''},
+
+        async init() {
+            const data = await api.get(`/api/factures/${factureId}`);
+            if (data.success) {
+                this.lignes = data.data.lignes;
+                this.paiements = data.data.paiements;
+                this.montantPaye = data.data.montantPaye;
+                this.soldeRestant = data.data.soldeRestant;
+            }
+        },
+
+        async addLigne() {
+            const d = await api.post(`/api/factures/${factureId}/lignes`, this.newLigne);
+            if (d.success) {
+                this.lignes.push(d.data);
+                this.newLigne = {description:'', quantite:1, prixUnitaire:0, unite:'forfait'};
+                this.showAddLigne = false;
+                notify('Ligne ajoutée');
+                location.reload(); // pour mettre à jour les totaux
+            } else notify(d.error, 'error');
+        },
+
+        async deleteLigne(id) {
+            if (!confirm('Supprimer cette ligne ?')) return;
+            const d = await api.delete(`/api/factures/${factureId}/lignes/${id}`);
+            if (d.success) { this.lignes = this.lignes.filter(l => l.id !== id); notify('Ligne supprimée'); location.reload(); }
+        },
+
+        async addPaiement() {
+            const d = await api.post(`/api/factures/${factureId}/paiements`, this.newPaiement);
+            if (d.success) {
+                this.paiements.push(d.data);
+                this.montantPaye += d.data.montant;
+                this.soldeRestant -= d.data.montant;
+                this.newPaiement = {datePaiement: new Date().toISOString().split('T')[0], montant:0, modeReglement:'Virement', reference:''};
+                this.showAddPaiement = false;
+                notify('Paiement enregistré');
+                location.reload();
+            } else notify(d.error, 'error');
+        },
+
+        async deletePaiement(id) {
+            if (!confirm('Supprimer ce paiement ?')) return;
+            const d = await api.delete(`/api/factures/${factureId}/paiements/${id}`);
+            if (d.success) { this.paiements = this.paiements.filter(p => p.id !== id); notify('Supprimé'); location.reload(); }
+        }
+    };
+}
+</script>
+{% endblock %}

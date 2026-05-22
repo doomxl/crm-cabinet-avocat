@@ -1,0 +1,196 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ mode == 'creation' ? 'Nouveau dossier' : 'Modifier le dossier' }} - CRM Cabinet{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ path('dashboard_index') }}">Accueil</a></li>
+<li class="breadcrumb-item"><a href="{{ path('dossier_index') }}">Dossiers</a></li>
+<li class="breadcrumb-item active">{{ mode == 'creation' ? 'Nouveau' : 'Modifier' }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+<div class="col-lg-10">
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0 fw-bold"><i class="fa fa-folder-plus text-primary me-2"></i>{{ mode == 'creation' ? 'Nouveau dossier' : 'Modifier le dossier' }}</h4>
+    <a href="{{ path('dossier_index') }}" class="btn btn-outline-secondary btn-sm"><i class="fa fa-arrow-left me-1"></i>Retour</a>
+</div>
+
+<div x-data="dossierForm()" x-init="init()">
+
+    <div class="card mb-3">
+        <div class="card-header">Informations générales</div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-8">
+                    <label class="form-label small fw-semibold">Titre du dossier <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" x-model="form.titre" placeholder="Ex: Divorce Dupont / Martin">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-semibold">Couleur</label>
+                    <div class="d-flex gap-2 align-items-center">
+                        <input type="color" class="form-control form-control-color" x-model="form.couleur" style="width:50px">
+                        <span class="small text-muted" x-text="form.couleur"></span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-semibold">Client <span class="text-danger">*</span></label>
+                    <select class="form-select" x-model="form.clientId">
+                        <option value="">-- Sélectionner un client --</option>
+                        {% for client in clients %}
+                        <option value="{{ client.id }}" {{ dossier and dossier.client.id == client.id ? 'selected' : '' }}>
+                            {{ client.nomComplet }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-semibold">Matière</label>
+                    <select class="form-select" x-model="form.matiere">
+                        <option value="">-- Non défini --</option>
+                        {% for matiere in matieres %}
+                        <option value="{{ matiere.value }}" {{ dossier and dossier.matiere and dossier.matiere.value == matiere.value ? 'selected' : '' }}>{{ matiere.label() }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-semibold">Statut</label>
+                    <select class="form-select" x-model="form.statut">
+                        {% for statut in statuts %}
+                        <option value="{{ statut.value }}" {{ dossier and dossier.statut.value == statut.value ? 'selected' : '' }}>{{ statut.label() }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-semibold">Date d'ouverture</label>
+                    <input type="date" class="form-control" x-model="form.dateOuverture">
+                </div>
+                <div class="col-12">
+                    <label class="form-label small fw-semibold">Notes</label>
+                    <textarea class="form-control" x-model="form.notes" rows="3" placeholder="Notes et observations..."></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Partie adverse -->
+    <div class="card mb-3">
+        <div class="card-header">Partie adverse principale</div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label small fw-semibold">Type</label>
+                    <select class="form-select" x-model="form.partieAdverseType">
+                        <option value="Personne physique">Personne physique</option>
+                        <option value="Personne morale">Personne morale</option>
+                    </select>
+                </div>
+                <div class="col-md-3" x-show="form.partieAdverseType === 'Personne physique'">
+                    <label class="form-label small fw-semibold">Prénom</label>
+                    <input type="text" class="form-control" x-model="form.partieAdversePrenom" placeholder="Prénom">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-semibold" x-text="form.partieAdverseType === 'Personne morale' ? 'Dénomination sociale' : 'Nom'"></label>
+                    <input type="text" class="form-control" x-model="form.partieAdverseNom" placeholder="Nom">
+                </div>
+                <div class="col-md-4" x-show="form.partieAdverseType === 'Personne morale'">
+                    <label class="form-label small fw-semibold">Entreprise</label>
+                    <input type="text" class="form-control" x-model="form.partieAdverseEntreprise" placeholder="Raison sociale">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Convention d'honoraires -->
+    <div class="card mb-3">
+        <div class="card-header">Convention d'honoraires</div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label small fw-semibold">Type</label>
+                    <select class="form-select" x-model="form.conventionTypeHonoraire">
+                        <option value="">-- Aucune convention --</option>
+                        {% for type in typesConvention %}
+                        <option value="{{ type.value }}">{{ type.label() }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4" x-show="form.conventionTypeHonoraire === 'fixe' || form.conventionTypeHonoraire === 'mixte'">
+                    <label class="form-label small fw-semibold">Montant forfait (€)</label>
+                    <input type="number" class="form-control" x-model="form.conventionMontantFixe" step="0.01">
+                </div>
+                <div class="col-md-4" x-show="form.conventionTypeHonoraire === 'pourcentage' || form.conventionTypeHonoraire === 'mixte'">
+                    <label class="form-label small fw-semibold">Pourcentage résultat (%)</label>
+                    <input type="number" class="form-control" x-model="form.conventionPourcentageResultat" step="0.01" min="0" max="100">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-semibold">Sous-branche</label>
+                    <input type="text" class="form-control" x-model="form.conventionSousBranche" placeholder="Ex: Divorce par consentement">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex gap-2 justify-content-end">
+        <a href="{{ path('dossier_index') }}" class="btn btn-outline-secondary">Annuler</a>
+        <button class="btn btn-primary" @click="sauvegarder()" :disabled="loading">
+            <i class="fa fa-save me-1"></i><span x-text="loading ? 'Enregistrement...' : 'Enregistrer'"></span>
+        </button>
+    </div>
+
+</div>
+</div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+function dossierForm() {
+    return {
+        loading: false,
+        dossierId: {{ dossier ? dossier.id : 'null' }},
+        form: {
+            titre: '{{ dossier ? dossier.titre|escape('js') : '' }}',
+            couleur: '{{ dossier ? dossier.couleur : '#3B82F6' }}',
+            clientId: '{{ dossier ? dossier.client.id : '' }}',
+            statut: '{{ dossier ? dossier.statut.value|escape('js') : 'En cours' }}',
+            matiere: '{{ dossier ? (dossier.matiere ? dossier.matiere.value|escape('js') : '') : '' }}',
+            notes: `{{ dossier ? dossier.notes|escape('js') : '' }}`,
+            dateOuverture: '{{ dossier ? dossier.dateOuverture|date('Y-m-d') : 'now'|date('Y-m-d') }}',
+            partieAdverseNom: '{{ dossier ? dossier.partieAdverseNom|escape('js') : '' }}',
+            partieAdversePrenom: '{{ dossier ? dossier.partieAdversePrenom|escape('js') : '' }}',
+            partieAdverseType: '{{ dossier ? dossier.partieAdverseType.value|escape('js') : 'Personne physique' }}',
+            partieAdverseEntreprise: '{{ dossier ? dossier.partieAdverseEntreprise|escape('js') : '' }}',
+            conventionTypeHonoraire: '{{ dossier and dossier.conventionTypeHonoraire ? dossier.conventionTypeHonoraire.value : '' }}',
+            conventionMontantFixe: '{{ dossier ? dossier.conventionMontantFixe : '' }}',
+            conventionPourcentageResultat: '{{ dossier ? dossier.conventionPourcentageResultat : '' }}',
+            conventionSousBranche: '{{ dossier ? dossier.conventionSousBranche|escape('js') : '' }}',
+        },
+
+        async init() {},
+
+        async sauvegarder() {
+            if (!this.form.titre.trim()) { notify('Le titre est obligatoire', 'error'); return; }
+            if (!this.form.clientId) { notify('Sélectionnez un client', 'error'); return; }
+            this.loading = true;
+            try {
+                let data;
+                if (this.dossierId) {
+                    data = await api.put(`/api/dossiers/${this.dossierId}`, this.form);
+                } else {
+                    data = await api.post('/api/dossiers', this.form);
+                }
+                if (data.success) {
+                    notify('Dossier enregistré');
+                    setTimeout(() => window.location.href = `/dossiers/${data.data.id}`, 800);
+                } else {
+                    notify(data.error || 'Erreur', 'error');
+                }
+            } catch(e) { notify('Erreur réseau', 'error'); }
+            this.loading = false;
+        }
+    };
+}
+</script>
+{% endblock %}

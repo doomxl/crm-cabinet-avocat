@@ -1,0 +1,165 @@
+{% extends 'base.html.twig' %}
+{% block title %}Actes & Modèles - CRM Cabinet{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ path('dashboard_index') }}">Accueil</a></li>
+<li class="breadcrumb-item active">Actes</li>
+{% endblock %}
+{% block content %}
+<div x-data="actesPage()" x-init="init()">
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0 fw-bold"><i class="fa fa-file-contract text-primary me-2"></i>Actes &amp; Modèles</h4>
+    <button class="btn btn-primary" @click="showNewModele = !showNewModele"><i class="fa fa-plus me-1"></i>Nouveau modèle</button>
+</div>
+
+<!-- Nouveau modèle inline -->
+<div class="card mb-3" x-show="showNewModele">
+    <div class="card-header">Nouveau modèle d'acte</div>
+    <div class="card-body">
+        <div class="row g-2">
+            <div class="col-md-5"><input class="form-control form-control-sm" x-model="newModele.nom" placeholder="Nom du modèle"></div>
+            <div class="col-md-3"><input class="form-control form-control-sm" x-model="newModele.categorie" placeholder="Catégorie (ex: Divorce, Contrat...)"></div>
+        </div>
+        <div class="mt-2">
+            <label class="form-label small">Contenu du modèle (utiliser {{ '{{variable}}' }} pour les variables)</label>
+            <textarea class="form-control font-monospace" x-model="newModele.contenu" rows="8" placeholder="Contenu du modèle... Utilisez {{ '{{client_nom}}' }}, {{ '{{dossier_titre}}' }}, {{ '{{cabinet_nom}}' }}, etc."></textarea>
+        </div>
+        <div class="mt-2 text-end">
+            <button class="btn btn-sm btn-primary" @click="addModele()">Enregistrer</button>
+            <button class="btn btn-sm btn-outline-secondary ms-1" @click="showNewModele = false">Annuler</button>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <!-- Modèles -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">Bibliothèque de modèles</div>
+            <div class="list-group list-group-flush">
+                <template x-if="modeles.length === 0">
+                    <div class="list-group-item text-muted small">Aucun modèle</div>
+                </template>
+                <template x-for="m in modeles" :key="m.id">
+                    <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" @click="selectModele(m)">
+                        <div>
+                            <div class="fw-semibold small" x-text="m.nom"></div>
+                            <div class="small text-muted" x-text="m.categorie || 'Sans catégorie'"></div>
+                        </div>
+                        <button class="btn btn-xs btn-outline-danger" @click.stop="deleteModele(m.id)"><i class="fa fa-times"></i></button>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </div>
+
+    <!-- Génération d'acte + actes générés -->
+    <div class="col-md-8">
+        <div class="card mb-3" x-show="selectedModele">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Générer un acte depuis : <strong x-text="selectedModele?.nom"></strong></span>
+                <button class="btn btn-sm btn-outline-secondary" @click="selectedModele = null">Fermer</button>
+            </div>
+            <div class="card-body">
+                <div class="row g-2">
+                    <div class="col-md-6">
+                        <label class="form-label small">Dossier</label>
+                        <select class="form-select form-select-sm" x-model="generation.dossierId">
+                            <option value="">-- Sélectionner --</option>
+                            <template x-for="d in dossiers" :key="d.id">
+                                <option :value="d.id" x-text="d.titre"></option>
+                            </template>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small">Nom de l'acte</label>
+                        <input class="form-control form-control-sm" x-model="generation.nom" :placeholder="selectedModele?.nom">
+                    </div>
+                </div>
+                <div class="mt-2 text-end">
+                    <button class="btn btn-sm btn-primary" @click="genererActe()">
+                        <i class="fa fa-magic me-1"></i>Générer
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">Actes générés récents</div>
+            <div class="list-group list-group-flush">
+                <template x-if="actes.length === 0">
+                    <div class="list-group-item text-muted small">Aucun acte généré</div>
+                </template>
+                <template x-for="a in actes" :key="a.id">
+                    <div class="list-group-item d-flex align-items-center gap-2">
+                        <div class="flex-grow-1">
+                            <div class="fw-semibold small" x-text="a.nom"></div>
+                            <div class="small text-muted" x-text="new Date(a.dateGeneration).toLocaleString('fr-FR') + ' — ' + (a.dossierTitre || '—')"></div>
+                        </div>
+                        <div class="btn-group btn-group-sm">
+                            <a :href="`/actes/${a.id}`" class="btn btn-outline-secondary"><i class="fa fa-eye"></i></a>
+                            <a :href="`/api/actes-generes/${a.id}/pdf`" class="btn btn-outline-danger"><i class="fa fa-file-pdf"></i></a>
+                            <a :href="`/api/actes-generes/${a.id}/docx`" class="btn btn-outline-primary"><i class="fa fa-file-word"></i></a>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{% endblock %}
+{% block javascripts %}
+<script>
+function actesPage() {
+    return {
+        modeles: [], actes: [], dossiers: [],
+        showNewModele: false, selectedModele: null,
+        newModele: { nom:'', categorie:'', contenu:'' },
+        generation: { dossierId:'', nom:'' },
+
+        async init() {
+            const [m, a, d] = await Promise.all([
+                api.get('/api/modeles-actes'),
+                api.get('/api/actes-generes'),
+                api.get('/api/dossiers?statut=' + encodeURIComponent('En cours'))
+            ]);
+            if (m.success) this.modeles = m.data;
+            if (a.success) this.actes = a.data;
+            if (d.success) this.dossiers = d.data;
+        },
+
+        selectModele(m) { this.selectedModele = m; this.generation.nom = m.nom; },
+
+        async addModele() {
+            const data = await api.post('/api/modeles-actes', this.newModele);
+            if (data.success) {
+                this.modeles.unshift(data.data);
+                this.newModele = { nom:'', categorie:'', contenu:'' };
+                this.showNewModele = false;
+                notify('Modèle créé');
+            } else notify(data.error, 'error');
+        },
+
+        async deleteModele(id) {
+            if (!confirm('Supprimer ce modèle ?')) return;
+            const data = await api.delete(`/api/modeles-actes/${id}`);
+            if (data.success) { this.modeles = this.modeles.filter(m => m.id !== id); notify('Supprimé'); }
+        },
+
+        async genererActe() {
+            if (!this.selectedModele) return;
+            const data = await api.post('/api/actes-generes', {
+                modeleId: this.selectedModele.id,
+                dossierId: this.generation.dossierId || null,
+                nom: this.generation.nom || this.selectedModele.nom
+            });
+            if (data.success) {
+                this.actes.unshift(data.data);
+                this.selectedModele = null;
+                notify('Acte généré !');
+            } else notify(data.error, 'error');
+        }
+    };
+}
+</script>
+{% endblock %}

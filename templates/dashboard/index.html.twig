@@ -1,0 +1,243 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Tableau de bord - CRM Cabinet{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Tableau de bord</li>
+{% endblock %}
+
+{% block content %}
+<div x-data="dashboard()" x-init="init()">
+
+    <!-- KPI Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-xl-3">
+            <!--div class="kpi-card" style="background: linear-gradient(135deg, #1e40af, #3b82f6)"-->
+            <div class="kpi-card">
+                <div class="d-flex align-items-start justify-content-between">
+                    <div>
+                        <div class="kpi-value" x-text="kpis.totalClients ?? '—'"></div>
+                        <div class="kpi-label">Clients</div>
+                    </div>
+                    <div class="kpi-icon"><i class="fa fa-users"></i></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <!--div class="kpi-card" style="background: linear-gradient(135deg, #059669, #10b981)"-->
+            <div class="kpi-card">
+                <div class="d-flex align-items-start justify-content-between">
+                    <div>
+                        <div class="kpi-value" x-text="kpis.dossiersEnCours ?? '—'"></div>
+                        <div class="kpi-label">Dossiers en cours</div>
+                    </div>
+                    <div class="kpi-icon"><i class="fa fa-folder-open"></i></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <!--div class="kpi-card" style="background: linear-gradient(135deg, #7c3aed, #a855f7)"-->
+             <div class="kpi-card">
+                <div class="d-flex align-items-start justify-content-between">
+                    <div>
+                        <div class="kpi-value" x-text="kpis.caMoisCourant !== null && kpis.caMoisCourant !== undefined 
+  ? kpis.caMoisCourant.toLocaleString('fr-FR', {style:'currency', currency:'EUR', maximumFractionDigits:0}) 
+  : '—'"></div>
+                        <div class="kpi-label">CA du mois</div>
+                    </div>
+                    <div class="kpi-icon"><i class="fa fa-euro-sign"></i></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <!--div class="kpi-card" style="background: linear-gradient(135deg, #dc2626, #ef4444)"-->
+            <div class="kpi-card">
+                <div class="d-flex align-items-start justify-content-between">
+                    <div>
+                        <div class="kpi-value" x-text="kpis.echeancesUrgentes ?? '—'"></div>
+                        <div class="kpi-label">Échéances &lt; 7 jours</div>
+                    </div>
+                    <div class="kpi-icon"><i class="fa fa-clock"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+
+        <!-- Alertes -->
+        <div class="col-lg-7">
+            <div class="card mb-3">
+                <div class="card-header d-flex align-items-center justify-content-between">
+                    <span><i class="fa fa-triangle-exclamation text-warning me-2"></i>Alertes</span>
+                    <span class="badge bg-danger" x-text="alertes.length" x-show="alertes.length > 0"></span>
+                </div>
+                <div class="card-body p-0">
+                    <template x-if="alertes.length === 0">
+                        <div class="text-center text-muted py-4 fst-italic"><!--i class="fa fa-check-circle"></i-->Aucune alerte</div>
+                    </template>
+                    <template x-for="alerte in alertes" :key="alerte.message">
+                        <div class="d-flex align-items-center gap-3 px-4 py-3 border-bottom">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" :style="`background:${alerte.couleur}20; width:36px; height:36px;`">
+                                <i class="fa fa-exclamation" :style="`color:${alerte.couleur};`"></i>
+                            </div>
+                            <span class="small" x-text="alerte.message"></span>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <!-- Agenda du jour -->
+            <div class="card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="fa fa-calendar-day me-2 text-primary"></i>Agenda du jour</span>
+                    <a href="{{ path('agenda_index') }}" class="btn btn-sm btn-outline-primary">Voir tout</a>
+                </div>
+                <div class="card-body p-0">
+                    <template x-if="rdvsAVenir.length === 0">
+                        <div class="text-center text-muted py-4 fst-italic">Aucun rendez-vous prévu</div>
+                    </template>
+                    <template x-for="rdv in rdvsAVenir" :key="rdv.id">
+                        <div class="d-flex align-items-center gap-3 px-4 py-3 border-bottom">
+                            <div class="text-center flex-shrink-0" style="min-width:50px">
+                                <div class="fw-bold text-primary" x-text="rdv.heure"></div>
+                                <div class="small text-muted" x-text="rdv.duree + ' min'"></div>
+                            </div>
+                            <div>
+                                <div class="fw-semibold small" x-text="rdv.type"></div>
+                                <div class="small text-muted" x-text="rdv.clientNom ?? 'Sans client'"></div>
+                            </div>
+                            <span class="badge bg-light text-dark ms-auto small" x-text="rdv.lieu"></span>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <!-- Échéances urgentes -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="fa fa-clock text-danger me-2"></i>Échéances urgentes</span>
+                    <a href="{{ path('echeance_index') }}" class="btn btn-sm btn-outline-danger">Voir toutes</a>
+                </div>
+                <div class="card-body p-0">
+                    <template x-if="echeancesUrgentes.length === 0">
+                        <div class="text-center text-muted py-4 fst-italic">Aucune échéance urgente</div>
+                    </template>
+                    <template x-for="e in echeancesUrgentes" :key="e.id">
+                        <div class="d-flex align-items-center gap-3 px-4 py-3 border-bottom">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" :style="`background:${e.urgence.couleur}20; width:40px; height:40px;`">
+                                <span class="small fw-bold" :style="`color:${e.urgence.couleur};`" x-text="e.urgence.jours + 'j'"></span>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fw-semibold small" x-text="e.type"></div>
+                                <div class="small text-muted" x-text="e.dossierTitre"></div>
+                            </div>
+                            <div class="text-end">
+                                <div class="small fw-bold" :style="`color:${e.urgence.couleur};`" x-text="e.urgence.texte"></div>
+                                <div class="small text-muted" x-text="new Date(e.date).toLocaleDateString('fr-FR')"></div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+
+        <!-- Graphiques et échéances -->
+        <div class="col-lg-5">
+
+            <!-- Graphique matières -->
+            <div class="card mb-3">
+                <div class="card-header"><i class="fa fa-chart-pie me-2 text-primary"></i>Répartition par matière</div>
+                <div class="card-body">
+                    <canvas id="chartMatieres" height="34"></canvas>
+                </div>
+            </div>
+
+           
+        </div>
+    </div>
+
+
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+function dashboard() {
+    return {
+        kpis: {},
+        alertes: [],
+        echeancesUrgentes: [],
+        rdvsAVenir: [],
+        statsByMatiere: [],
+        chartInstance: null,
+
+        async init() {
+            try {
+                const data = await api.get('/api/dashboard');
+                if (data.success) {
+                    this.kpis = data.data.kpis;
+                    this.alertes = data.data.alertes;
+                    this.echeancesUrgentes = data.data.echeancesUrgentes;
+                    this.rdvsAVenir = data.data.rdvsAVenir;
+                    this.statsByMatiere = data.data.statsByMatiere;
+                    this.$nextTick(() => this.drawChart());
+                }
+            } catch(e) { console.error(e); }
+        },
+
+        drawChart() {
+            const ctx = document.getElementById('chartMatieres');
+            if (!ctx || !this.statsByMatiere.length) return;
+            ctx.removeAttribute('height');
+            ctx.height = 180;
+            const colors = ['#EC4899','#1E40AF','#F97316','#059669','#7C3AED','#EF4444','#06B6D4','#6B7280'];
+            // Ta palette d'origine, mais en version moins flashy (tons adoucis / pastel)
+            const couleursAdoucies = ['#F472B6', '#60A5FA', '#FDBA74', '#34D399', '#A78BFA', '#F87171', '#22D3EE', '#9CA3AF'];
+            // Version très pastel / arrière-plans légers
+            const couleursFondsPastel = ['#FCE7F3', '#DBEAFE', '#FFEDD5', '#D1FAE5', '#EDE9FE', '#FEE2E2', '#CFFAFE', '#F3F4F6'];
+
+            if (this.chartInstance) this.chartInstance.destroy();
+            this.chartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: this.statsByMatiere.map(s => s.matiere || 'Non défini'),
+                    datasets: [{
+                        data: this.statsByMatiere.map(s => s.total),
+                        backgroundColor: couleursAdoucies,
+                        borderWidth: 2,
+                        borderColor: '#fff',
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                boxWidth: 12,
+                                font: { size: 11, family: 'DejaVu Sans Mono' },
+                                generateLabels(chart) {
+                                    const dataset = chart.data.datasets[0];
+                                    const total = dataset.data.reduce((a, b) => a + b, 0);
+                                    return chart.data.labels.map((label, i) => ({
+                                        text: `${label} ${total > 0 ? Math.round(dataset.data[i] / total * 100) : 0}%`,
+                                        fillStyle: dataset.backgroundColor[i],
+                                        strokeStyle: '#fff',
+                                        lineWidth: 1,
+                                        hidden: false,
+                                        index: i
+                                    }));
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        },
+
+    };
+}
+</script>
+{% endblock %}

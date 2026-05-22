@@ -1,0 +1,402 @@
+{% extends 'base.html.twig' %}
+{% block title %}Conflits d'intérêts - CRM Cabinet{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ path('dashboard_index') }}">Accueil</a></li>
+<li class="breadcrumb-item active">Conflits d'intérêts</li>
+{% endblock %}
+{% block content %}
+<div x-data="conflitsPage()" x-init="init()">
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0 fw-bold"><i class="fa fa-shield-halved text-warning me-2"></i>Conflits d'intérêts</h4>
+    <button class="btn btn-warning" @click="showVerification = !showVerification">
+        <i class="fa fa-search me-1"></i>Nouvelle vérification
+    </button>
+</div>
+
+<!-- Formulaire de vérification inline -->
+<div class="card mb-4 border-warning" x-show="showVerification" x-transition>
+    <div class="card-header bg-warning bg-opacity-10">
+        <i class="fa fa-search me-2 text-warning"></i>Vérification de conflit
+    </div>
+    <div class="card-body">
+        <p class="small text-muted mb-3">
+            Entrez les informations de la personne ou de l'affaire à vérifier. Le système analysera les similitudes avec vos clients et dossiers existants.
+        </p>
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold">Prénom</label>
+                <input class="form-control" x-model="verif.prenom" placeholder="Prénom">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold">Nom</label>
+                <input class="form-control" x-model="verif.nom" placeholder="Nom">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold">Dénomination (société)</label>
+                <input class="form-control" x-model="verif.denomination" placeholder="Nom de société">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold">Contexte / affaire</label>
+                <input class="form-control" x-model="verif.contexte" placeholder="Ex: Divorce, Litige commercial...">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label small fw-semibold">Notes (optionnel)</label>
+                <textarea class="form-control form-control-sm" x-model="verif.notes" rows="2" placeholder="Informations complémentaires..."></textarea>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label small fw-semibold">Client associé (optionnel)</label>
+                <select class="form-select" x-model="verif.clientId">
+                    <option value="">-- Aucun --</option>
+                    {% for client in clients %}
+                    <option value="{{ client.id }}">{{ client.nomComplet }}</option>
+                    {% endfor %}
+                </select>
+                <div class="form-text">Associer la vérification à un client existant</div>
+            </div>
+        </div>
+        <div class="mt-3 d-flex gap-2 justify-content-end">
+            <button class="btn btn-outline-secondary" @click="showVerification = false">Annuler</button>
+            <button class="btn btn-warning" @click="verifier()" :disabled="verifEnCours">
+                <i class="fa fa-search me-1"></i>
+                <span x-text="verifEnCours ? 'Analyse en cours...' : 'Vérifier les conflits'"></span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Résultat de vérification -->
+<div class="card mb-4" x-show="resultatVerif !== null" x-transition>
+    <div class="card-header d-flex justify-content-between align-items-center"
+         :class="resultatVerif && resultatVerif.aConflits ? 'bg-danger bg-opacity-10' : 'bg-success bg-opacity-10'">
+        <span>
+            <i class="fa me-2" :class="resultatVerif && resultatVerif.aConflits ? 'fa-exclamation-triangle text-danger' : 'fa-check-circle text-success'"></i>
+            <strong x-text="resultatVerif && resultatVerif.aConflits ? 'Conflit(s) détecté(s)' : 'Aucun conflit détecté'"></strong>
+        </span>
+        <button class="btn btn-sm btn-outline-secondary" @click="resultatVerif = null">Fermer</button>
+    </div>
+    <div class="card-body">
+        <template x-if="resultatVerif && !resultatVerif.aConflits">
+            <div class="alert alert-success mb-0">
+                <i class="fa fa-check-circle me-2"></i>
+                Aucun conflit d'intérêts détecté. Vous pouvez accepter ce dossier.
+            </div>
+        </template>
+        <template x-if="resultatVerif && resultatVerif.aConflits">
+            <div>
+                <div class="alert alert-danger mb-3">
+                    <i class="fa fa-exclamation-triangle me-2"></i>
+                    <strong x-text="resultatVerif.conflits.length + ' conflit(s) potentiel(s) détecté(s)'"></strong>.
+                    Veuillez examiner attentivement avant d'accepter ce dossier.
+                </div>
+                <div class="list-group">
+                    <template x-for="c in resultatVerif.conflits" :key="c.id || c.type + c.nom">
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <span class="badge me-2" :class="c.type === 'client' ? 'bg-danger' : 'bg-warning text-dark'" x-text="c.type === 'client' ? 'Client' : 'Dossier'"></span>
+                                    <strong x-text="c.nom"></strong>
+                                    <span class="text-muted ms-1" x-text="c.similarite ? '(' + c.similarite + '% similarité)' : ''"></span>
+                                </div>
+                                <template x-if="c.type === 'client'">
+                                    <a :href="'/clients/' + c.id" class="btn btn-xs btn-outline-primary" target="_blank">
+                                        <i class="fa fa-external-link"></i>
+                                    </a>
+                                </template>
+                                <template x-if="c.type === 'dossier'">
+                                    <a :href="'/dossiers/' + c.id" class="btn btn-xs btn-outline-primary" target="_blank">
+                                        <i class="fa fa-external-link"></i>
+                                    </a>
+                                </template>
+                            </div>
+                            <div class="small text-muted mt-1" x-text="c.detail || ''"></div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </template>
+    </div>
+</div>
+
+<!-- KPIs -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 bg-light">
+            <div class="card-body text-center py-3">
+                <div class="fs-3 fw-bold text-primary" x-text="stats.total || 0"></div>
+                <div class="small text-muted">Vérifications totales</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 bg-light">
+            <div class="card-body text-center py-3">
+                <div class="fs-3 fw-bold text-danger" x-text="stats.avecConflits || 0"></div>
+                <div class="small text-muted">Avec conflits</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 bg-light">
+            <div class="card-body text-center py-3">
+                <div class="fs-3 fw-bold text-success" x-text="stats.sansConflits || 0"></div>
+                <div class="small text-muted">Sans conflit</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 bg-light">
+            <div class="card-body text-center py-3">
+                <div class="fs-3 fw-bold text-warning" x-text="stats.ceMois || 0"></div>
+                <div class="small text-muted">Ce mois</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Historique des vérifications -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="fa fa-history me-2"></i>Historique des vérifications</span>
+        <div class="d-flex gap-2">
+            <input type="text" class="form-control form-control-sm" x-model="recherche"
+                   placeholder="Rechercher..." @input="filtrer()" style="width:200px;">
+            <select class="form-select form-select-sm" x-model="filtreStatut" @change="filtrer()" style="width:150px;">
+                <option value="">Tous</option>
+                <option value="conflit">Avec conflit</option>
+                <option value="ok">Sans conflit</option>
+            </select>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Date</th>
+                    <th>Personne vérifiée</th>
+                    <th>Client associé</th>
+                    <th>Résultat</th>
+                    <th>Conflits</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <template x-if="verifsFiltrees.length === 0">
+                    <tr>
+                        <td colspan="6" class="text-center py-4 text-muted">
+                            <i class="fa fa-search fa-2x mb-2 d-block"></i>
+                            Aucune vérification trouvée
+                        </td>
+                    </tr>
+                </template>
+                <template x-for="v in verifsFiltrees" :key="v.id">
+                    <tr>
+                        <td class="small" x-text="new Date(v.dateVerification).toLocaleDateString('fr-FR')"></td>
+                        <td>
+                            <div class="small fw-semibold" x-text="v.nomVerifie || '—'"></div>
+                            <div class="small text-muted" x-text="v.contexte || ''"></div>
+                        </td>
+                        <td class="small">
+                            <template x-if="v.clientNom">
+                                <a :href="'/clients/' + v.clientId" class="text-decoration-none" x-text="v.clientNom"></a>
+                            </template>
+                            <template x-if="!v.clientNom">
+                                <span class="text-muted">—</span>
+                            </template>
+                        </td>
+                        <td>
+                            <span class="badge" :class="v.aConflits ? 'bg-danger' : 'bg-success'"
+                                  x-text="v.aConflits ? 'Conflit' : 'OK'"></span>
+                        </td>
+                        <td>
+                            <span class="small" x-text="v.nombreConflits > 0 ? v.nombreConflits + ' conflit(s)' : '—'"></span>
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-primary" @click="voirDetail(v)" title="Voir le détail">
+                                    <i class="fa fa-eye"></i>
+                                </button>
+                                <button class="btn btn-outline-danger" @click="supprimerVerif(v.id)" title="Supprimer">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                </template>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal détail (sans modal Bootstrap — panneau inline) -->
+<div class="card mt-3 border-primary" x-show="verifDetail !== null" x-transition>
+    <div class="card-header bg-primary bg-opacity-10 d-flex justify-content-between align-items-center">
+        <span><i class="fa fa-info-circle me-2 text-primary"></i>Détail de la vérification</span>
+        <button class="btn btn-sm btn-outline-secondary" @click="verifDetail = null">Fermer</button>
+    </div>
+    <div class="card-body" x-show="verifDetail !== null">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <dl class="row small mb-0">
+                    <dt class="col-5 text-muted">Date</dt>
+                    <dd class="col-7" x-text="verifDetail ? new Date(verifDetail.dateVerification).toLocaleString('fr-FR') : ''"></dd>
+                    <dt class="col-5 text-muted">Personne vérifiée</dt>
+                    <dd class="col-7" x-text="verifDetail ? (verifDetail.nomVerifie || '—') : ''"></dd>
+                    <dt class="col-5 text-muted">Contexte</dt>
+                    <dd class="col-7" x-text="verifDetail ? (verifDetail.contexte || '—') : ''"></dd>
+                    <dt class="col-5 text-muted">Client associé</dt>
+                    <dd class="col-7" x-text="verifDetail ? (verifDetail.clientNom || '—') : ''"></dd>
+                    <dt class="col-5 text-muted">Résultat</dt>
+                    <dd class="col-7">
+                        <span class="badge" :class="verifDetail && verifDetail.aConflits ? 'bg-danger' : 'bg-success'"
+                              x-text="verifDetail && verifDetail.aConflits ? 'Conflit détecté' : 'Aucun conflit'"></span>
+                    </dd>
+                </dl>
+            </div>
+            <div class="col-md-6">
+                <div class="small fw-semibold mb-2">Notes</div>
+                <div class="bg-light rounded p-2 small" x-text="verifDetail ? (verifDetail.notes || 'Aucune note') : ''"></div>
+            </div>
+        </div>
+        <template x-if="verifDetail && verifDetail.conflitsDetail && verifDetail.conflitsDetail.length > 0">
+            <div class="mt-3">
+                <div class="small fw-semibold mb-2 text-danger">Conflits détectés :</div>
+                <div class="list-group">
+                    <template x-for="c in verifDetail.conflitsDetail" :key="c.nom">
+                        <div class="list-group-item list-group-item-danger list-group-item-action">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <span class="badge bg-danger me-2" x-text="c.type === 'client' ? 'Client' : 'Dossier'"></span>
+                                    <strong x-text="c.nom"></strong>
+                                    <span class="text-muted ms-1 small" x-text="c.similarite ? '(' + c.similarite + '%)' : ''"></span>
+                                </div>
+                            </div>
+                            <div class="small text-muted mt-1" x-text="c.detail || ''"></div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </template>
+    </div>
+</div>
+
+</div>
+{% endblock %}
+{% block javascripts %}
+<script>
+function conflitsPage() {
+    return {
+        verifs: [], verifsFiltrees: [],
+        stats: { total: 0, avecConflits: 0, sansConflits: 0, ceMois: 0 },
+        showVerification: false,
+        verifEnCours: false,
+        verifDetail: null,
+        resultatVerif: null,
+        recherche: '',
+        filtreStatut: '',
+
+        verif: {
+            prenom: '',
+            nom: '',
+            denomination: '',
+            contexte: '',
+            notes: '',
+            clientId: ''
+        },
+
+        async init() {
+            await this.chargerHistorique();
+        },
+
+        async chargerHistorique() {
+            const data = await api.get('/api/conflits/verifications');
+            if (data.success) {
+                this.verifs = data.data;
+                this.verifsFiltrees = [...this.verifs];
+                this.calculerStats();
+            }
+        },
+
+        calculerStats() {
+            this.stats.total = this.verifs.length;
+            this.stats.avecConflits = this.verifs.filter(v => v.aConflits).length;
+            this.stats.sansConflits = this.verifs.filter(v => !v.aConflits).length;
+            const moisCourant = new Date().getMonth();
+            const anneeCourante = new Date().getFullYear();
+            this.stats.ceMois = this.verifs.filter(v => {
+                const d = new Date(v.dateVerification);
+                return d.getMonth() === moisCourant && d.getFullYear() === anneeCourante;
+            }).length;
+        },
+
+        filtrer() {
+            let result = this.verifs;
+            if (this.recherche) {
+                const q = this.recherche.toLowerCase();
+                result = result.filter(v =>
+                    (v.nomVerifie || '').toLowerCase().includes(q) ||
+                    (v.contexte || '').toLowerCase().includes(q) ||
+                    (v.clientNom || '').toLowerCase().includes(q)
+                );
+            }
+            if (this.filtreStatut === 'conflit') result = result.filter(v => v.aConflits);
+            if (this.filtreStatut === 'ok') result = result.filter(v => !v.aConflits);
+            this.verifsFiltrees = result;
+        },
+
+        async verifier() {
+            const nomComplet = [this.verif.prenom, this.verif.nom, this.verif.denomination].filter(Boolean).join(' ').trim();
+            if (!nomComplet) {
+                notify('Veuillez saisir au moins un nom ou une dénomination', 'error');
+                return;
+            }
+            this.verifEnCours = true;
+            this.resultatVerif = null;
+            try {
+                const data = await api.post('/api/conflits/verifier', {
+                    prenom: this.verif.prenom,
+                    nom: this.verif.nom,
+                    denomination: this.verif.denomination,
+                    contexte: this.verif.contexte,
+                    notes: this.verif.notes,
+                    clientId: this.verif.clientId || null
+                });
+                if (data.success) {
+                    this.resultatVerif = data.data;
+                    this.showVerification = false;
+                    // Reset form
+                    this.verif = { prenom: '', nom: '', denomination: '', contexte: '', notes: '', clientId: '' };
+                    // Recharger l'historique
+                    await this.chargerHistorique();
+                    notify(data.data.aConflits ? 'Conflit(s) détecté(s) !' : 'Aucun conflit détecté',
+                           data.data.aConflits ? 'warning' : 'success');
+                } else {
+                    notify(data.error || 'Erreur lors de la vérification', 'error');
+                }
+            } catch(e) {
+                notify('Erreur réseau', 'error');
+            }
+            this.verifEnCours = false;
+        },
+
+        voirDetail(v) {
+            this.verifDetail = v;
+        },
+
+        async supprimerVerif(id) {
+            if (!confirm('Supprimer cet historique de vérification ?')) return;
+            const data = await api.delete(`/api/conflits/verifications/${id}`);
+            if (data.success) {
+                this.verifs = this.verifs.filter(v => v.id !== id);
+                this.filtrer();
+                this.calculerStats();
+                if (this.verifDetail && this.verifDetail.id === id) this.verifDetail = null;
+                notify('Vérification supprimée');
+            } else {
+                notify(data.error || 'Erreur', 'error');
+            }
+        }
+    };
+}
+</script>
+{% endblock %}

@@ -1,0 +1,166 @@
+{% extends 'base.html.twig' %}
+{% block title %}Gestion du temps - CRM Cabinet{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ path('dashboard_index') }}">Accueil</a></li>
+<li class="breadcrumb-item active">Temps</li>
+{% endblock %}
+{% block content %}
+<div x-data="gestionTemps({{ tauxHoraireDefaut }}, {{ sessionEnCours ? sessionEnCours.id : 'null' }})" x-init="init()">
+<h4 class="mb-4 fw-bold"><i class="fa fa-stopwatch text-primary me-2"></i>Gestion du temps</h4>
+
+<!-- Chrono actif -->
+<div class="card mb-4" :class="sessionActive ? 'border-success border-2' : ''">
+    <div class="card-header d-flex align-items-center justify-content-between">
+        <span><i class="fa fa-circle-dot me-2" :class="sessionActive ? 'text-danger animate__animated animate__flash' : 'text-muted'"></i>
+        <span x-text="sessionActive ? 'Session en cours' : 'Démarrer une session'"></span></span>
+        <span class="badge bg-success fs-5 font-monospace" x-show="sessionActive" x-text="formatDuree(elapsed)"></span>
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label small">Client</label>
+                <select class="form-select" x-model="newSession.clientId" :disabled="sessionActive">
+                    <option value="">-- Aucun --</option>
+                    {% for client in clients %}
+                    <option value="{{ client.id }}">{{ client.nomComplet }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label small">Dossier</label>
+                <select class="form-select" x-model="newSession.dossierId" :disabled="sessionActive">
+                    <option value="">-- Aucun --</option>
+                    {% for dossier in dossiers %}
+                    <option value="{{ dossier.id }}">{{ dossier.titre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small">Taux horaire (€/h)</label>
+                <input type="number" class="form-control" x-model="newSession.tauxHoraire" :disabled="sessionActive" step="5">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small d-block">&nbsp;</label>
+                <button x-show="!sessionActive" class="btn btn-success w-100" @click="demarrer()">
+                    <i class="fa fa-play me-1"></i>Démarrer
+                </button>
+                <button x-show="sessionActive" class="btn btn-danger w-100" @click="arreter()">
+                    <i class="fa fa-stop me-1"></i>Arrêter
+                </button>
+            </div>
+            <div class="col-12" x-show="!sessionActive">
+                <input type="text" class="form-control" x-model="newSession.description" placeholder="Description de la tâche...">
+            </div>
+        </div>
+        <div class="mt-3" x-show="sessionActive && elapsed > 0">
+            <div class="small text-muted">Montant estimé :
+                <strong class="text-success" x-text="(elapsed/3600 * newSession.tauxHoraire).toLocaleString('fr-FR', {style:'currency',currency:'EUR'})"></strong>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Journal des sessions -->
+<div class="card">
+    <div class="card-header"><i class="fa fa-history me-2"></i>Journal des sessions</div>
+    <div class="card-body p-0">
+        <table class="table table-sm table-hover mb-0">
+            <thead class="table-light">
+                <tr><th>Début</th><th>Fin</th><th>Durée</th><th>Dossier</th><th>Taux</th><th>Montant</th><th>Description</th><th></th></tr>
+            </thead>
+            <tbody>
+                <template x-if="sessions.length === 0">
+                    <tr><td colspan="8" class="text-center py-4 text-muted">Aucune session enregistrée</td></tr>
+                </template>
+                <template x-for="s in sessions" :key="s.id">
+                    <tr>
+                        <td class="small" x-text="new Date(s.debut).toLocaleString('fr-FR')"></td>
+                        <td class="small" x-text="s.fin ? new Date(s.fin).toLocaleString('fr-FR') : '—'"></td>
+                        <td class="small" x-text="s.dureeMinutes ? formatDuree(s.dureeMinutes * 60) : '—'"></td>
+                        <td class="small" x-text="s.dossierTitre || s.clientNom || '—'"></td>
+                        <td class="small" x-text="s.tauxHoraire + ' €/h'"></td>
+                        <td class="small text-success fw-semibold" x-text="s.montantFacturable ? s.montantFacturable.toLocaleString('fr-FR', {style:'currency',currency:'EUR'}) : '—'"></td>
+                        <td class="small" x-text="s.description || '—'"></td>
+                        <td><button class="btn btn-xs btn-outline-danger" @click="deleteSession(s.id)"><i class="fa fa-times"></i></button></td>
+                    </tr>
+                </template>
+            </tbody>
+        </table>
+    </div>
+</div>
+</div>
+{% endblock %}
+{% block javascripts %}
+<script>
+function gestionTemps(tauxDefaut, sessionEnCoursId) {
+    return {
+        sessions: [], sessionActive: sessionEnCoursId !== null,
+        sessionEnCoursId: sessionEnCoursId, elapsed: 0, timer: null, startTime: null,
+        newSession: { clientId:'', dossierId:'', tauxHoraire: tauxDefaut, description:'' },
+
+        async init() {
+            await this.loadSessions();
+            if (this.sessionActive) {
+                // Reprendre le chrono
+                const s = this.sessions.find(s => s.id === sessionEnCoursId);
+                if (s) {
+                    this.startTime = new Date(s.debut).getTime();
+                    this.elapsed = Math.floor((Date.now() - this.startTime) / 1000);
+                    this.timer = setInterval(() => this.elapsed++, 1000);
+                    // Pré-remplir les champs
+                    if (s.dossierId) this.newSession.dossierId = String(s.dossierId);
+                    if (s.clientId) this.newSession.clientId = String(s.clientId);
+                    this.newSession.tauxHoraire = s.tauxHoraire;
+                }
+            }
+        },
+
+        async loadSessions() {
+            const data = await api.get('/api/sessions');
+            if (data.success) this.sessions = data.data;
+        },
+
+        async demarrer() {
+            const data = await api.post('/api/sessions', {
+                ...this.newSession,
+                debut: new Date().toISOString()
+            });
+            if (data.success) {
+                this.sessionEnCoursId = data.data.id;
+                this.sessionActive = true;
+                this.startTime = Date.now();
+                this.elapsed = 0;
+                this.timer = setInterval(() => this.elapsed++, 1000);
+                this.sessions.unshift(data.data);
+                notify('Session démarrée');
+            } else notify(data.error, 'error');
+        },
+
+        async arreter() {
+            clearInterval(this.timer);
+            const data = await api.post(`/api/sessions/${this.sessionEnCoursId}/stop`);
+            if (data.success) {
+                this.sessionActive = false;
+                this.sessionEnCoursId = null;
+                this.elapsed = 0;
+                notify('Session arrêtée : ' + this.formatDuree(data.data.dureeMinutes * 60));
+                await this.loadSessions();
+            }
+        },
+
+        async deleteSession(id) {
+            if (!confirm('Supprimer cette session ?')) return;
+            const data = await api.delete(`/api/sessions/${id}`);
+            if (data.success) { this.sessions = this.sessions.filter(s => s.id !== id); notify('Supprimé'); }
+        },
+
+        formatDuree(seconds) {
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            const s = seconds % 60;
+            return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        }
+    };
+}
+</script>
+{% endblock %}

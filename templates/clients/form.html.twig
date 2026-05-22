@@ -1,0 +1,194 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ mode == 'creation' ? 'Nouveau client' : 'Modifier le client' }} - CRM Cabinet{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ path('dashboard_index') }}">Accueil</a></li>
+<li class="breadcrumb-item"><a href="{{ path('client_index') }}">Clients</a></li>
+<li class="breadcrumb-item active">{{ mode == 'creation' ? 'Nouveau' : 'Modifier' }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+<div class="col-lg-10">
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0 fw-bold">
+        <i class="fa fa-{{ mode == 'creation' ? 'user-plus' : 'user-pen' }} text-primary me-2"></i>
+        {{ mode == 'creation' ? 'Nouveau client' : 'Modifier le client' }}
+    </h4>
+    <a href="{{ path('client_index') }}" class="btn btn-outline-secondary btn-sm">
+        <i class="fa fa-arrow-left me-1"></i>Retour
+    </a>
+</div>
+
+<div x-data="clientForm()" x-init="init()">
+
+    <!-- Type client selector -->
+    <div class="card mb-3">
+        <div class="card-header">Type de client</div>
+        <div class="card-body">
+            <div class="d-flex gap-3">
+                {% for type in typesClient %}
+                <label class="d-flex align-items-center gap-2 cursor-pointer">
+                    <input type="radio" name="typeClient" value="{{ type.value }}" x-model="form.typeClient" class="form-check-input">
+                    <span>{{ type.label() }}</span>
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Informations personnelles -->
+    <div class="card mb-3">
+        <div class="card-header">Identité</div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6" x-show="form.typeClient !== 'Entreprise'">
+                    <label class="form-label small fw-semibold">Nom <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" x-model="form.nom" placeholder="Nom de famille">
+                </div>
+                <div class="col-md-6" x-show="form.typeClient !== 'Entreprise'">
+                    <label class="form-label small fw-semibold">Prénom</label>
+                    <input type="text" class="form-control" x-model="form.prenom" placeholder="Prénom">
+                </div>
+                <div class="col-md-6" x-show="form.typeClient === 'Entreprise' || form.typeClient === 'Professionnel'">
+                    <label class="form-label small fw-semibold">Raison sociale / Dénomination</label>
+                    <input type="text" class="form-control" x-model="form.intitule" placeholder="Nom de l'entreprise">
+                </div>
+                <div class="col-md-6" x-show="form.typeClient === 'Entreprise'">
+                    <label class="form-label small fw-semibold">Nom <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" x-model="form.nom" placeholder="Nom du représentant">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-semibold">Code client</label>
+                    <input type="text" class="form-control" x-model="form.codeClient" placeholder="Auto-généré">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-semibold">Email</label>
+                    <input type="email" class="form-control" x-model="form.email" placeholder="email@exemple.fr">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-semibold">Téléphone</label>
+                    <input type="tel" class="form-control" x-model="form.telephone" placeholder="01 23 45 67 89">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Adresse -->
+    <div class="card mb-3">
+        <div class="card-header">Adresse</div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-12">
+                    <label class="form-label small fw-semibold">Adresse</label>
+                    <input type="text" class="form-control" x-model="form.adresse" placeholder="Numéro et rue">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-semibold">Code postal</label>
+                    <input type="text" class="form-control" x-model="form.codePostal" placeholder="75001">
+                </div>
+                <div class="col-md-9">
+                    <label class="form-label small fw-semibold">Ville</label>
+                    <input type="text" class="form-control" x-model="form.ville" placeholder="Paris">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Infos professionnelles (entreprise) -->
+    <div class="card mb-3" x-show="form.typeClient === 'Entreprise' || form.typeClient === 'Professionnel'">
+        <div class="card-header">Informations professionnelles</div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label small fw-semibold">SIRET</label>
+                    <input type="text" class="form-control" x-model="form.siret" placeholder="xxx xxx xxx xxxxx">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-semibold">Type de société</label>
+                    <input type="text" class="form-control" x-model="form.typeSociete" placeholder="SARL, SA, SAS...">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-semibold">Code APE</label>
+                    <input type="text" class="form-control" x-model="form.codeAPE" placeholder="7111Z">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-semibold">CPH (caisse de prévoyance)</label>
+                    <input type="text" class="form-control" x-model="form.cph">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Boutons -->
+    <div class="d-flex gap-2 justify-content-end">
+        <a href="{{ path('client_index') }}" class="btn btn-outline-secondary">Annuler</a>
+        <button class="btn btn-primary" @click="sauvegarder()" :disabled="loading">
+            <i class="fa fa-save me-1"></i>
+            <span x-text="loading ? 'Enregistrement...' : 'Enregistrer'"></span>
+        </button>
+    </div>
+
+</div>
+</div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+function clientForm() {
+    return {
+        loading: false,
+        clientId: {{ client ? client.id : 'null' }},
+        form: {
+            typeClient: '{{ client ? client.typeClient.value : 'Particulier' }}',
+            nom: '{{ client ? client.nom|escape('js') : '' }}',
+            prenom: '{{ client ? client.prenom|escape('js') : '' }}',
+            email: '{{ client ? client.email|escape('js') : '' }}',
+            telephone: '{{ client ? client.telephone|escape('js') : '' }}',
+            adresse: '{{ client ? client.adresse|escape('js') : '' }}',
+            codePostal: '{{ client ? client.codePostal|escape('js') : '' }}',
+            ville: '{{ client ? client.ville|escape('js') : '' }}',
+            intitule: '{{ client ? client.intitule|escape('js') : '' }}',
+            siret: '{{ client ? client.siret|escape('js') : '' }}',
+            typeSociete: '{{ client ? client.typeSociete|escape('js') : '' }}',
+            codeAPE: '{{ client ? client.codeAPE|escape('js') : '' }}',
+            cph: '{{ client ? client.cph|escape('js') : '' }}',
+            codeClient: '{{ client ? client.codeClient|escape('js') : '' }}',
+        },
+
+        async init() {},
+
+        async sauvegarder() {
+            if (!this.form.nom.trim()) {
+                notify('Le nom est obligatoire', 'error');
+                return;
+            }
+            this.loading = true;
+            try {
+                let data;
+                if (this.clientId) {
+                    data = await api.put(`/api/clients/${this.clientId}`, this.form);
+                } else {
+                    data = await api.post('/api/clients', this.form);
+                }
+                if (data.success) {
+                    notify('Client enregistré avec succès');
+                    if (data.conflits && data.conflits.length > 0) {
+                        notify(`Attention : ${data.conflits.length} conflit(s) de représentation détecté(s)`, 'warning');
+                    }
+                    setTimeout(() => window.location.href = `/clients/${data.data.id}`, 1000);
+                } else {
+                    notify(data.error || 'Erreur lors de l\'enregistrement', 'error');
+                }
+            } catch(e) {
+                notify('Erreur réseau', 'error');
+            }
+            this.loading = false;
+        }
+    };
+}
+</script>
+{% endblock %}

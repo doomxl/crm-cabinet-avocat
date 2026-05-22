@@ -1,0 +1,121 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ mode == 'creation' ? 'Nouvelle facture' : 'Modifier la facture' }} - CRM Cabinet{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ path('dashboard_index') }}">Accueil</a></li>
+<li class="breadcrumb-item"><a href="{{ path('facture_index') }}">Honoraires</a></li>
+<li class="breadcrumb-item active">{{ mode == 'creation' ? 'Nouvelle' : 'Modifier' }}</li>
+{% endblock %}
+{% block content %}
+<div class="row justify-content-center"><div class="col-lg-8">
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0 fw-bold"><i class="fa fa-file-invoice me-2 text-success"></i>{{ mode == 'creation' ? 'Nouvelle facture' : 'Modifier' }}</h4>
+    <a href="{{ path('facture_index') }}" class="btn btn-outline-secondary btn-sm"><i class="fa fa-arrow-left me-1"></i>Retour</a>
+</div>
+<div x-data="factureForm()" x-init="init()">
+    <div class="card mb-3">
+        <div class="card-header">Informations</div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label small fw-semibold">Client</label>
+                    <select class="form-select" x-model="form.clientId" @change="loadDossiers()">
+                        <option value="">-- Sélectionner --</option>
+                        {% for client in clients %}
+                        <option value="{{ client.id }}">{{ client.nomComplet }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-semibold">Dossier (optionnel)</label>
+                    <select class="form-select" x-model="form.dossierId">
+                        <option value="">-- Sans dossier --</option>
+                        <template x-for="d in dossiers" :key="d.id">
+                            <option :value="d.id" x-text="d.titre"></option>
+                        </template>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-semibold">Type de document</label>
+                    <select class="form-select" x-model="form.typeDocument">
+                        {% for type in typesDocument %}
+                        <option value="{{ type.value }}">{{ type.label() }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-semibold">Date d'émission</label>
+                    <input type="date" class="form-control" x-model="form.dateEmission">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-semibold">Mode de règlement</label>
+                    <select class="form-select" x-model="form.modeReglement">
+                        {% for mode in modesReglement %}
+                        <option value="{{ mode.value }}">{{ mode.label() }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-semibold">Montant HT (€)</label>
+                    <input type="number" class="form-control" x-model="form.montantHt" step="0.01" @input="recalculer()">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-semibold">TVA (%)</label>
+                    <input type="number" class="form-control" x-model="form.tauxTva" step="0.01" @input="recalculer()">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-semibold">Provision (€)</label>
+                    <input type="number" class="form-control" x-model="form.provision" step="0.01">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-semibold">Total TTC</label>
+                    <div class="form-control bg-light fw-bold" x-text="montantTtc.toLocaleString('fr-FR', {style:'currency',currency:'EUR'})"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="d-flex gap-2 justify-content-end">
+        <a href="{{ path('facture_index') }}" class="btn btn-outline-secondary">Annuler</a>
+        <button class="btn btn-success" @click="sauvegarder()" :disabled="loading">
+            <i class="fa fa-save me-1"></i><span x-text="loading ? 'Enregistrement...' : 'Enregistrer'"></span>
+        </button>
+    </div>
+</div>
+</div></div>
+{% endblock %}
+{% block javascripts %}
+<script>
+function factureForm() {
+    return {
+        loading: false, montantTtc: 0, dossiers: [],
+        factureId: {{ facture ? facture.id : 'null' }},
+        form: {
+            clientId: '{{ facture ? facture.client.id : '' }}',
+            dossierId: '{{ facture and facture.dossier ? facture.dossier.id : '' }}',
+            typeDocument: "{{ facture ? facture.typeDocument.value|escape('js') : "Note d'honoraires" }}",
+            montantHt: {{ facture ? facture.montantHt : 0 }},
+            tauxTva: {{ facture ? facture.tauxTva : 20 }},
+            provision: {{ facture ? facture.provision : 0 }},
+            dateEmission: '{{ facture ? facture.dateEmission|date('Y-m-d') : 'now'|date('Y-m-d') }}',
+            modeReglement: '{{ facture ? facture.modeReglement.value|escape('js') : 'Virement' }}',
+            statut: '{{ facture ? facture.statut.value|escape('js') : 'En cours' }}',
+        },
+        async init() { this.recalculer(); if (this.form.clientId) await this.loadDossiers(); },
+        recalculer() { this.montantTtc = parseFloat(this.form.montantHt||0) * (1 + parseFloat(this.form.tauxTva||0)/100); },
+        async loadDossiers() {
+            if (!this.form.clientId) { this.dossiers = []; return; }
+            const data = await api.get(`/api/clients/${this.form.clientId}/dossiers`);
+            if (data.success) this.dossiers = data.data;
+        },
+        async sauvegarder() {
+            this.loading = true;
+            try {
+                let data = this.factureId ? await api.put(`/api/factures/${this.factureId}`, this.form) : await api.post('/api/factures', this.form);
+                if (data.success) { notify('Facture enregistrée'); setTimeout(() => window.location.href = `/honoraires/${data.data.id}`, 800); }
+                else notify(data.error || 'Erreur', 'error');
+            } catch(e) { notify('Erreur réseau', 'error'); }
+            this.loading = false;
+        }
+    };
+}
+</script>
+{% endblock %}

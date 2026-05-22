@@ -1,0 +1,179 @@
+{% extends 'base.html.twig' %}
+{% block title %}Agenda - CRM Cabinet{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ path('dashboard_index') }}">Accueil</a></li>
+<li class="breadcrumb-item active">Agenda</li>
+{% endblock %}
+{% block content %}
+<div x-data="agenda()" x-init="init()">
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0 fw-bold"><i class="fa fa-calendar-days text-primary me-2"></i>Agenda</h4>
+    <button class="btn btn-primary" @click="showForm = !showForm"><i class="fa fa-plus me-1"></i>Nouveau RDV</button>
+</div>
+
+<!-- Formulaire ajout RDV inline -->
+<div class="card mb-3" x-show="showForm">
+    <div class="card-header">Nouveau rendez-vous</div>
+    <div class="card-body">
+        <div class="row g-2">
+            <div class="col-md-3">
+                <label class="form-label small">Client</label>
+                <select class="form-select form-select-sm" x-model="newRdv.clientId">
+                    <option value="">-- Aucun --</option>
+                    {% for client in clients %}
+                    <option value="{{ client.id }}">{{ client.nomComplet }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small">Date</label>
+                <input type="date" class="form-control form-control-sm" x-model="newRdv.date">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small">Heure</label>
+                <input type="time" class="form-control form-control-sm" x-model="newRdv.heure">
+            </div>
+            <div class="col-md-1">
+                <label class="form-label small">Durée (min)</label>
+                <input type="number" class="form-control form-control-sm" x-model="newRdv.duree" min="15" step="15">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small">Type</label>
+                <select class="form-select form-select-sm" x-model="newRdv.type">
+                    {% for t in typesRdv %}
+                    <option value="{{ t }}">{{ t }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small">Lieu</label>
+                <input type="text" class="form-control form-control-sm" x-model="newRdv.lieu" value="Cabinet">
+            </div>
+            <div class="col-12">
+                <textarea class="form-control form-control-sm" x-model="newRdv.notes" rows="2" placeholder="Notes..."></textarea>
+            </div>
+        </div>
+        <div class="mt-2 text-end">
+            <button class="btn btn-sm btn-primary" @click="addRdv()">Enregistrer</button>
+            <button class="btn btn-sm btn-outline-secondary ms-1" @click="showForm = false">Annuler</button>
+        </div>
+    </div>
+</div>
+
+<!-- Navigation semaine -->
+<div class="d-flex align-items-center justify-content-between mb-3">
+    <button class="btn btn-sm btn-outline-secondary" @click="semainePrecedente()"><i class="fa fa-chevron-left"></i></button>
+    <h6 class="mb-0 fw-semibold" x-text="labelSemaine()"></h6>
+    <button class="btn btn-sm btn-outline-secondary" @click="semaineSuivante()"><i class="fa fa-chevron-right"></i></button>
+    <button class="btn btn-sm btn-outline-primary ms-3" @click="aller(new Date())">Aujourd'hui</button>
+</div>
+
+<!-- Calendrier semaine -->
+<div class="card">
+    <div class="card-body p-0">
+        <div class="row g-0">
+            <template x-for="(jour, idx) in joursSemaine" :key="idx">
+                <div class="col border-end" :class="isToday(jour) ? 'bg-primary bg-opacity-10' : ''">
+                    <div class="text-center py-2 border-bottom fw-semibold small" :class="isToday(jour) ? 'text-primary' : 'text-muted'">
+                        <div x-text="['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'][idx]"></div>
+                        <div class="fw-bold" x-text="jour.getDate()"></div>
+                    </div>
+                    <div class="p-1" style="min-height:200px">
+                        <template x-for="rdv in getRdvsForDay(jour)" :key="rdv.id">
+                            <div class="rounded p-1 mb-1 small" style="background:#3b82f620;border-left:3px solid #3b82f6">
+                                <div class="fw-semibold" x-text="rdv.heure + ' - ' + rdv.type"></div>
+                                <div class="text-muted" x-text="rdv.clientNom || 'Sans client'"></div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </div>
+</div>
+
+</div>
+{% endblock %}
+{% block javascripts %}
+<script>
+function agenda() {
+    return {
+        rdvs: [], joursSemaine: [], currentWeekStart: null, showForm: false,
+        newRdv: {clientId:'', date:new Date().toISOString().split('T')[0], heure:'09:00', duree:60, type:'Consultation', lieu:'Cabinet', notes:''},
+
+        async init() {
+            const now = new Date();
+            const day = now.getDay();
+            this.currentWeekStart = new Date(now);
+            this.currentWeekStart.setDate(now.getDate() - (day === 0 ? 6 : day - 1));
+            this.buildJours();
+            await this.loadRdvs();
+        },
+
+        buildJours() {
+            this.joursSemaine = Array.from({length:7}, (_,i) => {
+                const d = new Date(this.currentWeekStart);
+                d.setDate(d.getDate() + i);
+                return d;
+            });
+        },
+
+        getSemaineStr() {
+            const year = this.currentWeekStart.getFullYear();
+            const startOfYear = new Date(year, 0, 1);
+            const week = Math.ceil(((this.currentWeekStart - startOfYear) / 86400000 + startOfYear.getDay() + 1) / 7);
+            return `${year}-W${String(week).padStart(2,'0')}`;
+        },
+
+        async loadRdvs() {
+            const data = await api.get(`/api/rendezvous?semaine=${this.getSemaineStr()}`);
+            if (data.success) this.rdvs = data.data;
+        },
+
+        getRdvsForDay(jour) {
+            const dateStr = jour.toISOString().split('T')[0];
+            return this.rdvs.filter(r => r.date === dateStr);
+        },
+
+        isToday(jour) {
+            return jour.toDateString() === new Date().toDateString();
+        },
+
+        labelSemaine() {
+            const fin = new Date(this.currentWeekStart);
+            fin.setDate(fin.getDate() + 6);
+            return `${this.currentWeekStart.toLocaleDateString('fr-FR', {day:'2-digit',month:'long'})} — ${fin.toLocaleDateString('fr-FR', {day:'2-digit',month:'long',year:'numeric'})}`;
+        },
+
+        async semainePrecedente() {
+            this.currentWeekStart.setDate(this.currentWeekStart.getDate() - 7);
+            this.buildJours();
+            await this.loadRdvs();
+        },
+
+        async semaineSuivante() {
+            this.currentWeekStart.setDate(this.currentWeekStart.getDate() + 7);
+            this.buildJours();
+            await this.loadRdvs();
+        },
+
+        async aller(date) {
+            const day = date.getDay();
+            this.currentWeekStart = new Date(date);
+            this.currentWeekStart.setDate(date.getDate() - (day === 0 ? 6 : day - 1));
+            this.buildJours();
+            await this.loadRdvs();
+        },
+
+        async addRdv() {
+            const data = await api.post('/api/rendezvous', this.newRdv);
+            if (data.success) {
+                this.rdvs.push(data.data);
+                this.showForm = false;
+                notify('Rendez-vous ajouté');
+            } else notify(data.error, 'error');
+        }
+    };
+}
+</script>
+{% endblock %}

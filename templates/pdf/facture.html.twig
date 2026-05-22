@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+        font-family: 'DejaVu Sans', Arial, sans-serif;
+        font-size: 11px;
+        color: #1a1a1a;
+        line-height: 1.5;
+    }
+
+    /* En-tête cabinet */
+    .header {
+        display: table;
+        width: 100%;
+        margin-bottom: 30px;
+        border-bottom: 3px solid #1a2942;
+        padding-bottom: 15px;
+    }
+    .header-left { display: table-cell; width: 55%; vertical-align: top; }
+    .header-right { display: table-cell; width: 45%; vertical-align: top; text-align: right; }
+
+    .cabinet-nom {
+        font-size: 20px;
+        font-weight: bold;
+        color: #1a2942;
+        margin-bottom: 4px;
+    }
+    .cabinet-info {
+        font-size: 9px;
+        color: #555;
+        line-height: 1.6;
+    }
+
+    /* Titre document */
+    .document-titre {
+        font-size: 18px;
+        font-weight: bold;
+        color: #1a2942;
+        text-align: right;
+        margin-bottom: 4px;
+    }
+    .document-numero {
+        font-size: 12px;
+        color: #666;
+        text-align: right;
+    }
+    .document-date {
+        font-size: 11px;
+        color: #666;
+        text-align: right;
+    }
+
+    /* Bloc client */
+    .blocs {
+        display: table;
+        width: 100%;
+        margin-bottom: 25px;
+    }
+    .bloc-client { display: table-cell; width: 48%; vertical-align: top; }
+    .bloc-spacer { display: table-cell; width: 4%; }
+    .bloc-infos { display: table-cell; width: 48%; vertical-align: top; }
+
+    .bloc-titre {
+        font-size: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #888;
+        border-bottom: 1px solid #ddd;
+        padding-bottom: 4px;
+        margin-bottom: 8px;
+        font-weight: bold;
+    }
+    .bloc-content {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 4px;
+        padding: 10px;
+        font-size: 10px;
+        line-height: 1.6;
+    }
+    .client-nom { font-size: 13px; font-weight: bold; margin-bottom: 4px; }
+
+    /* Statut */
+    .statut-badge {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 3px;
+        font-size: 9px;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    .statut-encours { background: #cff4fc; color: #055160; }
+    .statut-payee { background: #d1e7dd; color: #0a3622; }
+    .statut-partiel { background: #fff3cd; color: #664d03; }
+    .statut-retard { background: #f8d7da; color: #58151c; }
+    .statut-annulee { background: #e2e3e5; color: #41464b; }
+
+    /* Tableau lignes */
+    .tableau-lignes {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+    }
+    .tableau-lignes thead tr {
+        background: #1a2942;
+        color: white;
+    }
+    .tableau-lignes thead th {
+        padding: 8px 10px;
+        text-align: left;
+        font-size: 9px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    .tableau-lignes thead th.text-right { text-align: right; }
+    .tableau-lignes tbody tr {
+        border-bottom: 1px solid #e9ecef;
+    }
+    .tableau-lignes tbody tr:nth-child(even) { background: #f8f9fa; }
+    .tableau-lignes tbody td {
+        padding: 8px 10px;
+        font-size: 10px;
+        vertical-align: top;
+    }
+    .tableau-lignes tbody td.text-right { text-align: right; }
+    .tableau-lignes tfoot tr { border-top: 2px solid #1a2942; }
+    .tableau-lignes tfoot td {
+        padding: 5px 10px;
+        font-size: 10px;
+    }
+    .tableau-lignes tfoot td.text-right { text-align: right; }
+    .total-ttc td {
+        font-size: 12px !important;
+        font-weight: bold !important;
+        color: #1a2942;
+        border-top: 2px solid #1a2942;
+        padding-top: 8px !important;
+    }
+
+    /* Totaux -->
+    .totaux {
+        display: table;
+        width: 100%;
+        margin-bottom: 20px;
+    }
+    .totaux-left { display: table-cell; width: 55%; vertical-align: top; }
+    .totaux-right { display: table-cell; width: 45%; vertical-align: top; }
+    .totaux-table { width: 100%; border-collapse: collapse; }
+    .totaux-table td { padding: 4px 8px; font-size: 10px; }
+    .totaux-table td:last-child { text-align: right; font-weight: 600; }
+    .totaux-table .ligne-ttc td {
+        font-size: 13px;
+        font-weight: bold;
+        color: #1a2942;
+        border-top: 2px solid #1a2942;
+        padding-top: 8px;
+    }
+    .totaux-table .ligne-solde td {
+        font-size: 13px;
+        font-weight: bold;
+        color: #dc3545;
+        border-top: 2px solid #dc3545;
+        padding-top: 8px;
+    }
+
+    /* Conditions de règlement */
+    .reglement-bloc {
+        background: #f0f7ff;
+        border: 1px solid #b6d4fe;
+        border-radius: 4px;
+        padding: 10px 14px;
+        margin-bottom: 15px;
+        font-size: 9px;
+    }
+    .reglement-titre { font-weight: bold; margin-bottom: 4px; color: #1a2942; }
+
+    /* Pied de page */
+    .footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        border-top: 1px solid #ddd;
+        padding: 6px 0;
+        font-size: 8px;
+        color: #999;
+        text-align: center;
+    }
+    .footer-table { width: 100%; }
+    .footer-table td { padding: 0 15px; }
+    .footer-table td:nth-child(2) { text-align: center; }
+    .footer-table td:nth-child(3) { text-align: right; }
+
+    .page-break { page-break-after: always; }
+</style>
+</head>
+<body>
+
+<!-- En-tête -->
+<div class="header">
+    <div class="header-left">
+        <div class="cabinet-nom">{{ config.nomCabinet }}</div>
+        <div class="cabinet-info">
+            {% if config.adresse %}{{ config.adresse }}<br>{% endif %}
+            {% if config.ville %}{{ config.codePostal }} {{ config.ville }}<br>{% endif %}
+            {% if config.telephone %}Tél. : {{ config.telephone }}<br>{% endif %}
+            {% if config.email %}{{ config.email }}<br>{% endif %}
+            {% if config.siret %}SIRET : {{ config.siret }}<br>{% endif %}
+            {% if config.tvaIntracommunautaire %}TVA : {{ config.tvaIntracommunautaire }}{% endif %}
+        </div>
+    </div>
+    <div class="header-right">
+        <div class="document-titre">{{ facture.typeDocument.label() }}</div>
+        <div class="document-numero">N° {{ facture.numero }}</div>
+        <div class="document-date">Émise le {{ facture.dateEmission|date('d/m/Y') }}</div>
+        <div style="margin-top: 8px;">
+            {% set statutClass = 'statut-encours' %}
+            {% if facture.statut.value == 'Payée' %}
+                {% set statutClass = 'statut-payee' %}
+            {% elseif facture.statut.value == 'Partiellement payée' %}
+                {% set statutClass = 'statut-partiel' %}
+            {% elseif facture.statut.value == 'En retard' %}
+                {% set statutClass = 'statut-retard' %}
+            {% elseif facture.statut.value == 'Annulée' %}
+                {% set statutClass = 'statut-annulee' %}
+            {% endif %}
+            <span class="statut-badge {{ statutClass }}">{{ facture.statut.label() }}</span>
+        </div>
+    </div>
+</div>
+
+<!-- Blocs client / infos -->
+<div class="blocs">
+    <div class="bloc-client">
+        <div class="bloc-titre">Destinataire</div>
+        <div class="bloc-content">
+            <div class="client-nom">{{ facture.client.nomComplet }}</div>
+            {% if facture.client.adresse %}{{ facture.client.adresse }}<br>{% endif %}
+            {% if facture.client.ville %}{{ facture.client.codePostal }} {{ facture.client.ville }}<br>{% endif %}
+            {% if facture.client.email %}<br>{{ facture.client.email }}<br>{% endif %}
+            {% if facture.client.telephone %}{{ facture.client.telephone }}{% endif %}
+        </div>
+    </div>
+    <div class="bloc-spacer"></div>
+    <div class="bloc-infos">
+        <div class="bloc-titre">Informations</div>
+        <div class="bloc-content">
+            <table style="width:100%; font-size:10px;">
+                <tr>
+                    <td style="color:#666; width:40%;">Référence</td>
+                    <td style="font-weight:600;">{{ facture.numero }}</td>
+                </tr>
+                <tr>
+                    <td style="color:#666;">Date d'émission</td>
+                    <td>{{ facture.dateEmission|date('d/m/Y') }}</td>
+                </tr>
+                <tr>
+                    <td style="color:#666;">Mode de règlement</td>
+                    <td>{{ facture.modeReglement.value }}</td>
+                </tr>
+                {% if facture.dossier %}
+                <tr>
+                    <td style="color:#666;">Dossier</td>
+                    <td>{{ facture.dossier.titre|slice(0,35) }}</td>
+                </tr>
+                {% endif %}
+                <tr>
+                    <td style="color:#666;">Code client</td>
+                    <td>{{ facture.client.codeClient }}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Lignes de facturation -->
+{% if lignes|length > 0 %}
+<table class="tableau-lignes">
+    <thead>
+        <tr>
+            <th style="width:55%;">Description</th>
+            <th style="width:10%; text-align:right;">Qté</th>
+            <th style="width:10%; text-align:right;">Unité</th>
+            <th style="width:12%; text-align:right;">Prix unit. HT</th>
+            <th style="width:13%; text-align:right;">Total HT</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for ligne in lignes %}
+        <tr>
+            <td>{{ ligne.description }}</td>
+            <td class="text-right">{{ ligne.quantite|number_format(2, ',', ' ') }}</td>
+            <td class="text-right">{{ ligne.unite }}</td>
+            <td class="text-right">{{ ligne.prixUnitaire|number_format(2, ',', ' ') }} €</td>
+            <td class="text-right">{{ ligne.montantTotal|number_format(2, ',', ' ') }} €</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+
+<!-- Totaux -->
+<div class="totaux">
+    <div class="totaux-left">
+        {% if config.riBanque or config.riIban %}
+        <div class="reglement-bloc">
+            <div class="reglement-titre">Coordonnées bancaires</div>
+            {% if config.riBanque %}Banque : {{ config.riBanque }}<br>{% endif %}
+            {% if config.riIban %}IBAN : {{ config.riIban }}<br>{% endif %}
+            {% if config.riBic %}BIC : {{ config.riBic }}{% endif %}
+        </div>
+        {% endif %}
+        {% if config.mentionsLegales %}
+        <div style="font-size:8px; color:#888; line-height:1.4;">
+            {{ config.mentionsLegales }}
+        </div>
+        {% endif %}
+    </div>
+    <div class="totaux-right">
+        <table class="totaux-table">
+            <tr>
+                <td style="color:#666;">Montant HT</td>
+                <td>{{ facture.montantHt|number_format(2, ',', ' ') }} €</td>
+            </tr>
+            <tr>
+                <td style="color:#666;">TVA ({{ facture.tauxTva }} %)</td>
+                <td>{{ (facture.montantHt * facture.tauxTva / 100)|number_format(2, ',', ' ') }} €</td>
+            </tr>
+            <tr class="ligne-ttc">
+                <td>Total TTC</td>
+                <td>{{ facture.montantTtc|number_format(2, ',', ' ') }} €</td>
+            </tr>
+            {% if facture.provision > 0 %}
+            <tr>
+                <td style="color:#666;">Provision versée</td>
+                <td style="color:#198754;">- {{ facture.provision|number_format(2, ',', ' ') }} €</td>
+            </tr>
+            {% endif %}
+            {% if montantPaye > 0 %}
+            <tr>
+                <td style="color:#666;">Paiements reçus</td>
+                <td style="color:#198754;">- {{ montantPaye|number_format(2, ',', ' ') }} €</td>
+            </tr>
+            {% endif %}
+            {% if soldeRestant > 0 %}
+            <tr class="ligne-solde">
+                <td>Solde dû</td>
+                <td>{{ soldeRestant|number_format(2, ',', ' ') }} €</td>
+            </tr>
+            {% endif %}
+        </table>
+    </div>
+</div>
+
+<!-- Pied de page fixe -->
+<div class="footer">
+    <table class="footer-table">
+        <tr>
+            <td>{{ config.nomCabinet }}{% if config.siret %} — SIRET {{ config.siret }}{% endif %}</td>
+            <td>{{ facture.numero }}</td>
+            <td>Page <span class="pagenum"></span></td>
+        </tr>
+    </table>
+</div>
+
+</body>
+</html>

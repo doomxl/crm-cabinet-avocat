@@ -1,0 +1,195 @@
+/* CRM Cabinet d'Avocat - Styles personnalisés */
+
+/* Override Bootstrap avec la charte graphique du cabinet */
+:root {
+    --crm-primary: #1a2942;
+    --crm-primary-light: #243452;
+    --crm-accent: #3b82f6;
+    --crm-sidebar-width: 240px;
+    --crm-topbar-height: 56px;
+}
+
+
+a {
+    color: #1a2942;
+    text-decoration: none;
+}
+
+a:hover {
+    color: #da870c;;
+    text-decoration: none;
+}
+
+/* ============================================================
+   SIDEBAR
+   ============================================================ */
+.sidebar {
+    background: var(--crm-primary);
+    width: var(--crm-sidebar-width);
+    min-height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 2px 0 8px rgba(0,0,0,0.15);
+    transition: width 0.3s ease;
+}
+
+.sidebar-brand {
+    padding: 0 16px;
+    height: var(--crm-topbar-height);
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    flex-shrink: 0;
+}
+
+.sidebar-brand-text {
+    color: white;
+    font-size: 0.95rem;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: 0.02em;
+}
+
+.sidebar-nav {
+    flex: 1;
+    padding: 8px 0;
+}
+
+.nav-section-title {
+    color: rgba(255,255,255,0.35);
+    font-size: 0.625rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 12px 20px 4px;
+}
+
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 20px;
+    color: rgba(255,255,255,0.72);
+    text-decoration: none;
+    font-size: 0.82rem;
+    font-weight: 500;
+    transition: all 0.15s ease;
+    border-left: 3px solid transparent;
+}
+
+.sidebar-link:hover {
+    color: white;
+    background: rgba(255,255,255,0.08);
+    border-left-color: rgba(255,255,255,0.3);
+}
+
+.sidebar-link.active {
+    color: white;
+    background: rgba(59,130,246,0.2);
+    border-left-color: var(--crm-accent);
+}
+
+.sidebar-link i {
+    width: 18px;
+    text-align: center;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+}
+
+/* ============================================================
+   TOPBAR
+   ============================================================ */
+.topbar {
+    height: var(--crm-topbar-height);
+    background: white;
+    border-bottom: 1px solid #e5e7eb;
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: var(--crm-sidebar-width);
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    gap: 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+/* ============================================================
+   CONTENU PRINCIPAL
+   ============================================================ */
+.main-content {
+    margin-left: var(--crm-sidebar-width);
+    margin-top: var(--crm-topbar-height);
+    padding: 24px;
+    min-height: calc(100vh - var(--crm-topbar-height));
+    background: #f8f9fa;
+}
+
+/* ============================================================
+   UTILITAIRES
+   ============================================================ */
+.btn-xs {
+    padding: 0.15rem 0.45rem;
+    font-size: 0.72rem;
+    border-radius: 0.2rem;
+    line-height: 1.4;
+}
+
+/* Timeline chronologie */
+.timeline-item {
+    position: relative;
+    padding-left: 28px;
+    margin-bottom: 1rem;
+}
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 0;
+    bottom: -1rem;
+    width: 2px;
+    background: #e5e7eb;
+}
+.timeline-item:last-child::before { bottom: 0; }
+.timeline-dot {
+    position: absolute;
+    left: 0;
+    top: 4px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 0 0 2px currentColor;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 8px;
+    color: white;
+}
+
+/* Badges urgence */
+.urgence-critique { background: #dc2626; color: white; }
+.urgence-urgent { background: #ea580c; color: white; }
+.urgence-attention { background: #ca8a04; color: white; }
+.urgence-normal { background: #16a34a; color: white; }
+.urgence-lointain { background: #6b7280; color: white; }
+
+/* Responsive */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 0;
+        overflow: hidden;
+    }
+    .main-content {
+        margin-left: 0;
+    }
+    .topbar {
+        left: 0;
+    }
+}

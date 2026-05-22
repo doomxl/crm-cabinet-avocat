@@ -1,0 +1,310 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ acte.nom }} - Actes - CRM Cabinet{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ path('dashboard_index') }}">Accueil</a></li>
+<li class="breadcrumb-item"><a href="{{ path('acte_index') }}">Actes</a></li>
+<li class="breadcrumb-item active">{{ acte.nom }}</li>
+{% endblock %}
+{% block content %}
+<div x-data="acteEditor({{ acte.id }})" x-init="init()">
+
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+        <h4 class="fw-bold mb-1"><i class="fa fa-file-contract text-primary me-2"></i><span x-text="acteNom">{{ acte.nom }}</span></h4>
+        <span class="small text-muted">Généré le {{ acte.dateGeneration|date('d/m/Y à H:i') }}</span>
+        {% if acte.dossier %}
+        <span class="ms-2 badge bg-light text-dark border">
+            <i class="fa fa-folder me-1"></i>{{ acte.dossier.titre|slice(0,40) }}
+        </span>
+        {% endif %}
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn btn-sm btn-outline-secondary" @click="toggleVariables = !toggleVariables">
+            <i class="fa fa-code me-1"></i>Variables
+        </button>
+        <button class="btn btn-sm btn-outline-success" @click="sauvegarder()" :disabled="saving">
+            <i class="fa fa-save me-1"></i><span x-text="saving ? 'Enregistrement...' : 'Enregistrer'"></span>
+        </button>
+        <a href="/api/actes-generes/{{ acte.id }}/pdf" class="btn btn-sm btn-outline-danger">
+            <i class="fa fa-file-pdf me-1"></i>PDF
+        </a>
+        <a href="/api/actes-generes/{{ acte.id }}/docx" class="btn btn-sm btn-outline-primary">
+            <i class="fa fa-file-word me-1"></i>Word
+        </a>
+    </div>
+</div>
+
+<div class="row g-3">
+    <!-- Panneau Variables -->
+    <div class="col-md-3" x-show="toggleVariables" x-transition>
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span class="small fw-semibold">Variables disponibles</span>
+                <button class="btn btn-xs btn-outline-secondary" @click="toggleVariables = false">
+                    <i class="fa fa-times"></i>
+                </button>
+            </div>
+            <div class="card-body p-2" style="overflow-y:auto; max-height:600px;">
+                <div class="small text-muted mb-2">Cliquez sur une variable pour l'insérer dans l'éditeur.</div>
+                <template x-for="groupe in groupesVariables" :key="groupe.titre">
+                    <div class="mb-3">
+                        <div class="text-uppercase text-muted" style="font-size:0.65rem; letter-spacing:.05em;" x-text="groupe.titre"></div>
+                        <template x-for="v in groupe.variables" :key="v.code">
+                            <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                                <div>
+                                    <code class="small" x-text="'{{'+v.code+'}}'" style="font-size:0.75rem;"></code>
+                                    <div class="text-muted" style="font-size:0.7rem;" x-text="v.label"></div>
+                                </div>
+                                <button class="btn btn-xs btn-outline-primary ms-1" @click="insererVariable(v.code)" title="Insérer">
+                                    <i class="fa fa-plus"></i>
+                                </button>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+
+                <div class="mt-3">
+                    <div class="text-uppercase text-muted mb-1" style="font-size:0.65rem; letter-spacing:.05em;">Blocs conditionnels</div>
+                    <div class="p-2 bg-light rounded small font-monospace mb-1" style="font-size:0.72rem;">
+                        &#123;&#123;#si variable&#125;&#125;<br>
+                        &nbsp;&nbsp;contenu si vrai<br>
+                        &#123;&#123;/si&#125;&#125;
+                    </div>
+                    <button class="btn btn-xs btn-outline-secondary w-100" @click="insererBloc()">
+                        <i class="fa fa-code me-1"></i>Insérer bloc conditionnel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Éditeur principal -->
+    <div :class="toggleVariables ? 'col-md-9' : 'col-md-12'">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span class="small fw-semibold">Contenu de l'acte</span>
+                <div class="d-flex gap-2 align-items-center">
+                    <span class="small text-muted" x-text="compteurMots + ' mots'"></span>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-secondary" :class="modeAffichage === 'editeur' ? 'active' : ''" @click="modeAffichage = 'editeur'">
+                            <i class="fa fa-edit me-1"></i>Éditeur
+                        </button>
+                        <button class="btn btn-outline-secondary" :class="modeAffichage === 'apercu' ? 'active' : ''" @click="modeAffichage = 'apercu'; genererApercu()">
+                            <i class="fa fa-eye me-1"></i>Aperçu
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <!-- Mode éditeur -->
+                <div x-show="modeAffichage === 'editeur'">
+                    <textarea
+                        id="acteTextarea"
+                        class="form-control border-0 font-monospace"
+                        x-model="contenu"
+                        @input="onContenuChange()"
+                        rows="30"
+                        style="border-radius:0; resize:vertical; font-size:0.85rem; line-height:1.6;"
+                        placeholder="Contenu de l'acte..."></textarea>
+                </div>
+                <!-- Mode aperçu -->
+                <div x-show="modeAffichage === 'apercu'" class="p-4" style="min-height:600px; font-family: 'Times New Roman', serif; font-size:1rem; line-height:1.8;">
+                    <div x-html="apercuHtml" class="acte-apercu"></div>
+                    <div x-show="apercuHtml === ''" class="text-center text-muted py-5">
+                        <i class="fa fa-eye fa-2x mb-2"></i>
+                        <p>Aucun contenu à afficher</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Nom de l'acte (éditable) -->
+        <div class="card mt-3">
+            <div class="card-header small fw-semibold">Métadonnées</div>
+            <div class="card-body">
+                <div class="row g-2">
+                    <div class="col-md-8">
+                        <label class="form-label small">Nom de l'acte</label>
+                        <input class="form-control form-control-sm" x-model="acteNom" placeholder="Nom de l'acte">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small">Dossier associé</label>
+                        <div class="form-control form-control-sm bg-light">
+                            {% if acte.dossier %}
+                                <a href="/dossiers/{{ acte.dossier.id }}" class="text-decoration-none">
+                                    {{ acte.dossier.titre|slice(0,40) }}
+                                </a>
+                            {% else %}
+                                <span class="text-muted">—</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{% endblock %}
+
+{% block stylesheets %}
+<style>
+.acte-apercu {
+    white-space: pre-wrap;
+}
+.acte-apercu strong { font-weight: bold; }
+.acte-apercu em { font-style: italic; }
+
+/* Mise en surbrillance des variables non résolues */
+.var-unresolved {
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 3px;
+    padding: 0 3px;
+    font-family: monospace;
+    font-size: 0.85em;
+}
+</style>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+function acteEditor(acteId) {
+    return {
+        acteId,
+        acteNom: '{{ acte.nom|escape('js') }}',
+        contenu: '',
+        apercuHtml: '',
+        modeAffichage: 'editeur',
+        toggleVariables: false,
+        saving: false,
+        compteurMots: 0,
+
+        groupesVariables: [
+            {
+                titre: 'Cabinet',
+                variables: [
+                    { code: 'cabinet_nom', label: 'Nom du cabinet' },
+                    { code: 'cabinet_adresse', label: 'Adresse du cabinet' },
+                    { code: 'cabinet_telephone', label: 'Téléphone' },
+                    { code: 'cabinet_email', label: 'Email' },
+                    { code: 'cabinet_siret', label: 'SIRET' },
+                    { code: 'cabinet_toque', label: 'N° toque barreau' },
+                ]
+            },
+            {
+                titre: 'Client',
+                variables: [
+                    { code: 'client_nom', label: 'Nom complet du client' },
+                    { code: 'client_prenom', label: 'Prénom' },
+                    { code: 'client_nom_famille', label: 'Nom de famille' },
+                    { code: 'client_email', label: 'Email client' },
+                    { code: 'client_telephone', label: 'Téléphone client' },
+                    { code: 'client_adresse', label: 'Adresse client' },
+                    { code: 'client_ville', label: 'Ville client' },
+                    { code: 'client_code_postal', label: 'Code postal' },
+                ]
+            },
+            {
+                titre: 'Dossier',
+                variables: [
+                    { code: 'dossier_titre', label: 'Titre du dossier' },
+                    { code: 'dossier_reference', label: 'Référence dossier' },
+                    { code: 'dossier_matiere', label: 'Matière' },
+                    { code: 'dossier_date_ouverture', label: 'Date d\'ouverture' },
+                    { code: 'convention_type', label: 'Type d\'honoraires' },
+                    { code: 'convention_montant', label: 'Montant convention' },
+                ]
+            },
+            {
+                titre: 'Partie adverse',
+                variables: [
+                    { code: 'partie_adverse_nom', label: 'Nom partie adverse' },
+                    { code: 'partie_adverse_prenom', label: 'Prénom partie adverse' },
+                    { code: 'partie_adverse_avocat', label: 'Avocat partie adverse' },
+                ]
+            },
+            {
+                titre: 'Dates',
+                variables: [
+                    { code: 'date_jour', label: 'Date du jour (dd/mm/yyyy)' },
+                    { code: 'date_jour_long', label: 'Date longue (ex: 20 mai 2024)' },
+                    { code: 'annee_courante', label: 'Année courante' },
+                    { code: 'ville_fait', label: 'Ville + date (ex: Paris, le...)' },
+                ]
+            }
+        ],
+
+        async init() {
+            const data = await api.get(`/api/actes-generes/${this.acteId}`);
+            if (data.success) {
+                this.contenu = data.data.contenu || '';
+                this.acteNom = data.data.nom || this.acteNom;
+                this.onContenuChange();
+            }
+        },
+
+        onContenuChange() {
+            // Compter les mots
+            const texte = this.contenu.replace(/\{\{.*?\}\}/g, '').trim();
+            this.compteurMots = texte ? texte.split(/\s+/).filter(Boolean).length : 0;
+        },
+
+        insererVariable(code) {
+            const textarea = document.getElementById('acteTextarea');
+            if (!textarea) return;
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const insertion = '{{' + code + '}}';
+            this.contenu = this.contenu.substring(0, start) + insertion + this.contenu.substring(end);
+            this.$nextTick(() => {
+                textarea.focus();
+                textarea.setSelectionRange(start + insertion.length, start + insertion.length);
+            });
+            this.onContenuChange();
+        },
+
+        insererBloc() {
+            const textarea = document.getElementById('acteTextarea');
+            if (!textarea) return;
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const selectionText = this.contenu.substring(start, end) || 'contenu conditionnel';
+            {% verbatim %}const bloc = `{{#si variable}}\n${selectionText}\n{{/si}}`;{% endverbatim %}
+            this.contenu = this.contenu.substring(0, start) + bloc + this.contenu.substring(end);
+            this.onContenuChange();
+        },
+
+        {% verbatim %}genererApercu() {
+            let html = this.contenu
+                .replace(/\{\{#si\s+[\w.]+\}\}([\s\S]*?)\{\{\/si\}\}/g, (match, inner) => {
+                    return `<span style="background:#e8f4fd; border-left:3px solid #3b82f6; display:block; padding:2px 8px; margin:4px 0;">${inner.trim()}</span>`;
+                })
+                .replace(/\{\{([\w.]+)\}\}/g, (match, varName) => {
+                    return `<span class="var-unresolved">${match}</span>`;
+                })
+                .replace(/\n/g, '<br>');
+            this.apercuHtml = html;
+        },{% endverbatim %}
+
+        async sauvegarder() {
+            this.saving = true;
+            try {
+                const data = await api.put(`/api/actes-generes/${this.acteId}`, {
+                    nom: this.acteNom,
+                    contenu: this.contenu
+                });
+                if (data.success) {
+                    notify('Acte enregistré');
+                } else {
+                    notify(data.error || 'Erreur lors de la sauvegarde', 'error');
+                }
+            } catch(e) {
+                notify('Erreur réseau', 'error');
+            }
+            this.saving = false;
+        }
+    };
+}
+</script>
+{% endblock %}

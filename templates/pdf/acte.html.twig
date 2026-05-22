@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+        font-family: 'DejaVu Serif', 'Times New Roman', Georgia, serif;
+        font-size: 12px;
+        color: #1a1a1a;
+        line-height: 1.8;
+    }
+
+    /* En-tête cabinet -->
+    .header {
+        display: table;
+        width: 100%;
+        border-bottom: 2px solid #1a2942;
+        padding-bottom: 12px;
+        margin-bottom: 25px;
+    }
+    .header-left { display: table-cell; width: 60%; vertical-align: bottom; }
+    .header-right { display: table-cell; width: 40%; vertical-align: bottom; text-align: right; }
+
+    .cabinet-nom {
+        font-size: 14px;
+        font-weight: bold;
+        color: #1a2942;
+        font-family: 'DejaVu Sans', Arial, sans-serif;
+    }
+    .cabinet-coordonnees {
+        font-size: 9px;
+        color: #555;
+        margin-top: 3px;
+        font-family: 'DejaVu Sans', Arial, sans-serif;
+        line-height: 1.5;
+    }
+    .doc-ref {
+        font-size: 9px;
+        color: #888;
+        font-family: 'DejaVu Sans', Arial, sans-serif;
+        line-height: 1.5;
+    }
+
+    /* Titre de l'acte */
+    .acte-titre {
+        text-align: center;
+        margin: 30px 0 25px;
+    }
+    .acte-titre h1 {
+        font-size: 18px;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: #1a2942;
+        border-bottom: 2px solid #1a2942;
+        display: inline-block;
+        padding-bottom: 4px;
+    }
+    .acte-titre .sous-titre {
+        font-size: 11px;
+        color: #555;
+        margin-top: 8px;
+        font-style: italic;
+    }
+
+    /* Informations dossier -->
+    .infos-dossier {
+        background: #f8f9fa;
+        border-left: 4px solid #1a2942;
+        padding: 10px 15px;
+        margin-bottom: 25px;
+        font-size: 10px;
+        font-family: 'DejaVu Sans', Arial, sans-serif;
+    }
+    .infos-dossier table { width: 100%; border-collapse: collapse; }
+    .infos-dossier td { padding: 2px 8px 2px 0; vertical-align: top; }
+    .infos-dossier .label { color: #666; width: 25%; font-weight: bold; }
+
+    /* Corps du document -->
+    .corps {
+        text-align: justify;
+        margin-bottom: 30px;
+        font-size: 12px;
+        line-height: 1.9;
+    }
+
+    /* Signature -->
+    .signatures {
+        margin-top: 50px;
+        display: table;
+        width: 100%;
+    }
+    .signature-left { display: table-cell; width: 45%; vertical-align: top; }
+    .signature-right { display: table-cell; width: 45%; vertical-align: top; text-align: right; }
+    .signature-label {
+        font-size: 10px;
+        font-family: 'DejaVu Sans', Arial, sans-serif;
+        color: #555;
+        margin-bottom: 3px;
+    }
+    .signature-nom {
+        font-size: 11px;
+        font-weight: bold;
+        font-family: 'DejaVu Sans', Arial, sans-serif;
+        color: #1a2942;
+    }
+    .signature-ligne {
+        border-bottom: 1px solid #333;
+        margin-top: 50px;
+        margin-bottom: 5px;
+        width: 180px;
+    }
+    .signature-right .signature-ligne { margin-left: auto; }
+
+    /* Filigrane -->
+    .filigrane {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(-45deg);
+        font-size: 60px;
+        font-weight: bold;
+        font-family: 'DejaVu Sans', Arial, sans-serif;
+        color: rgba(200, 200, 200, 0.15);
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
+        white-space: nowrap;
+        pointer-events: none;
+        z-index: -1;
+    }
+
+    /* Pied de page -->
+    .footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        border-top: 1px solid #ddd;
+        padding: 5px 0;
+        font-family: 'DejaVu Sans', Arial, sans-serif;
+    }
+    .footer-inner {
+        display: table;
+        width: 100%;
+    }
+    .footer-inner td {
+        display: table-cell;
+        font-size: 8px;
+        color: #999;
+        padding: 0 15px;
+        vertical-align: middle;
+    }
+    .footer-inner td:nth-child(2) { text-align: center; }
+    .footer-inner td:nth-child(3) { text-align: right; }
+
+    /* Saut de page -->
+    .saut-page { page-break-after: always; }
+
+    /* Contenu de l'acte (préservation des sauts de ligne) -->
+    .contenu-acte {
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+    .contenu-acte p { margin-bottom: 12px; }
+</style>
+</head>
+<body>
+
+<!-- En-tête -->
+<div class="header">
+    <div class="header-left">
+        <div class="cabinet-nom">{{ config.nomCabinet }}</div>
+        <div class="cabinet-coordonnees">
+            {% if config.adresse %}{{ config.adresse }}<br>{% endif %}
+            {% if config.ville %}{{ config.codePostal }} {{ config.ville }}<br>{% endif %}
+            {% if config.telephone %}Tél. {{ config.telephone }}{% endif %}
+            {% if config.email %} — {{ config.email }}{% endif %}
+            {% if config.barreau %}<br>Barreau de {{ config.barreau }}{% endif %}
+            {% if config.toque %} — Toque n° {{ config.toque }}{% endif %}
+        </div>
+    </div>
+    <div class="header-right">
+        <div class="doc-ref">
+            Référence : {{ acte.id }}<br>
+            Généré le {{ acte.dateGeneration|date('d/m/Y') }}<br>
+            {% if acte.dossier %}
+            Dossier : {{ acte.dossier.titre|slice(0,40) }}
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Titre de l'acte -->
+<div class="acte-titre">
+    <h1>{{ acte.nom }}</h1>
+    {% if acte.modele and acte.modele.categorie %}
+    <div class="sous-titre">{{ acte.modele.categorie }}</div>
+    {% endif %}
+</div>
+
+<!-- Informations dossier -->
+{% if acte.dossier %}
+<div class="infos-dossier">
+    <table>
+        <tr>
+            <td class="label">Affaire :</td>
+            <td>{{ acte.dossier.titre }}</td>
+            <td class="label">Client :</td>
+            <td>{{ acte.dossier.client.nomComplet }}</td>
+        </tr>
+        {% if acte.dossier.matiere %}
+        <tr>
+            <td class="label">Matière :</td>
+            <td>{{ acte.dossier.matiere.label() }}</td>
+            <td class="label">Date d'ouverture :</td>
+            <td>{{ acte.dossier.dateOuverture|date('d/m/Y') }}</td>
+        </tr>
+        {% endif %}
+        {% if acte.dossier.partieAdverseNom %}
+        <tr>
+            <td class="label">Partie adverse :</td>
+            <td colspan="3">
+                {% if acte.dossier.partieAdversePrenom %}{{ acte.dossier.partieAdversePrenom }} {% endif %}
+                {{ acte.dossier.partieAdverseNom }}
+            </td>
+        </tr>
+        {% endif %}
+    </table>
+</div>
+{% endif %}
+
+<!-- Corps de l'acte -->
+<div class="corps">
+    <div class="contenu-acte">{{ contenuResolu }}</div>
+</div>
+
+<!-- Zone de signatures -->
+<div class="signatures">
+    <div class="signature-left">
+        <div class="signature-label">Le client :</div>
+        {% if acte.dossier %}
+        <div class="signature-nom">{{ acte.dossier.client.nomComplet }}</div>
+        {% endif %}
+        <div class="signature-ligne"></div>
+        <div style="font-size:8px; color:#888; font-family: 'DejaVu Sans', Arial, sans-serif;">Signature précédée de la mention<br>"Lu et approuvé"</div>
+    </div>
+    <div class="signature-right">
+        <div class="signature-label">L'avocat :</div>
+        <div class="signature-nom">{{ config.nomCabinet }}</div>
+        <div class="signature-ligne"></div>
+        <div style="font-size:8px; color:#888; font-family: 'DejaVu Sans', Arial, sans-serif;">
+            {% if config.barreau %}Barreau de {{ config.barreau }}{% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Filigrane si brouillon -->
+{% if not acte.id %}
+<div class="filigrane">BROUILLON</div>
+{% endif %}
+
+<!-- Pied de page -->
+<div class="footer">
+    <table class="footer-inner">
+        <tr>
+            <td>{{ config.nomCabinet }}{% if config.siret %} — SIRET {{ config.siret }}{% endif %}</td>
+            <td>{{ acte.nom }}</td>
+            <td>Page <span class="pagenum"></span></td>
+        </tr>
+    </table>
+</div>
+
+</body>
+</html>

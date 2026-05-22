@@ -1,0 +1,35 @@
+parameters:
+    app.upload_dir: '%kernel.project_dir%/public/uploads'
+    app.documents_dir: '%kernel.project_dir%/public/documents'
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Entity/'
+            - '../src/Kernel.php'
+
+    App\Service\FactureService:
+        arguments:
+            $entityManager: '@doctrine.orm.entity_manager'
+
+    App\Service\PdfService:
+        arguments:
+            $twig: '@twig'
+
+    App\Service\WordService: ~
+
+    App\Service\TemplateMoteurService: ~
+
+    App\Service\EcheanceService: ~
+
+    App\Service\ConflitService:
+        arguments:
+            $entityManager: '@doctrine.orm.entity_manager'
+
+    App\Service\ExportService: ~

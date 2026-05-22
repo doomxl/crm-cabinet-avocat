@@ -1,0 +1,389 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ dossier.titre }} - CRM Cabinet{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ path('dashboard_index') }}">Accueil</a></li>
+<li class="breadcrumb-item"><a href="{{ path('dossier_index') }}">Dossiers</a></li>
+<li class="breadcrumb-item active">{{ dossier.titre|slice(0, 40) }}</li>
+{% endblock %}
+
+{% block content %}
+<div x-data="dossierDetail({{ dossier.id }})" x-init="init()">
+
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div class="d-flex align-items-center gap-3">
+        <div class="rounded" style="width:8px;height:48px;background:{{ dossier.couleur }}"></div>
+        <div>
+            <h4 class="fw-bold mb-1">{{ dossier.titre }}</h4>
+            <div class="d-flex gap-2 align-items-center">
+                {% if dossier.matiere %}
+                <span class="badge" style="background:{{ dossier.matiere.couleur() }}">{{ dossier.matiere.label() }}</span>
+                {% endif %}
+                <span class="badge {{ dossier.statut.badgeClass() }}">{{ dossier.statut.label() }}</span>
+                <a href="{{ path('client_show', {id: dossier.client.id}) }}" class="text-decoration-none small text-muted">
+                    <i class="fa fa-user me-1"></i>{{ dossier.client.nomComplet }}
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="d-flex gap-2">
+        {% if dossier.statut.value != 'Archivé' %}
+        <button class="btn btn-outline-dark btn-sm" @click="archiver()"><i class="fa fa-archive me-1"></i>Archiver</button>
+        {% else %}
+        <button class="btn btn-outline-primary btn-sm" @click="desarchiver()"><i class="fa fa-box-open me-1"></i>Désarchiver</button>
+        {% endif %}
+        <a href="{{ path('dossier_edit', {id: dossier.id}) }}" class="btn btn-outline-primary btn-sm">
+            <i class="fa fa-pencil me-1"></i>Modifier
+        </a>
+    </div>
+</div>
+
+<!-- Onglets Bootstrap (pas de modal) -->
+<ul class="nav nav-tabs mb-3" id="dossierTabs">
+    <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-infos">Infos</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-parties" @click="loadParties()">Parties adverses</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-echeances" @click="loadEcheances()">
+        Échéances
+        <span class="badge bg-danger ms-1" x-show="urgentes > 0" x-text="urgentes"></span>
+    </button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-chronologie" @click="loadChronologie()">Chronologie</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-documents" @click="loadDocuments()">Documents</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-actes" @click="loadActes()">Actes générés</button></li>
+</ul>
+
+<div class="tab-content">
+
+    <!-- Infos -->
+    <div class="tab-pane fade show active" id="tab-infos">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">Informations du dossier</div>
+                    <div class="card-body">
+                        <dl class="row small mb-0">
+                            <dt class="col-5 text-muted">Référence</dt>
+                            <dd class="col-7">{{ dossier.id }}</dd>
+                            <dt class="col-5 text-muted">Date ouverture</dt>
+                            <dd class="col-7">{{ dossier.dateOuverture|date('d/m/Y') }}</dd>
+                            {% if dossier.conventionTypeHonoraire %}
+                            <dt class="col-5 text-muted">Convention</dt>
+                            <dd class="col-7">{{ dossier.conventionTypeHonoraire.label() }}</dd>
+                            {% endif %}
+                            {% if dossier.conventionMontantFixe %}
+                            <dt class="col-5 text-muted">Montant fixe</dt>
+                            <dd class="col-7">{{ dossier.conventionMontantFixe|number_format(2, ',', ' ') }} €</dd>
+                            {% endif %}
+                            {% if dossier.conventionPourcentageResultat %}
+                            <dt class="col-5 text-muted">Pourcentage</dt>
+                            <dd class="col-7">{{ dossier.conventionPourcentageResultat }} %</dd>
+                            {% endif %}
+                        </dl>
+                        {% if dossier.notes %}
+                        <hr>
+                        <p class="small mb-0">{{ dossier.notes }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">Partie adverse principale</div>
+                    <div class="card-body">
+                        {% if dossier.partieAdverseNom %}
+                        <dl class="row small mb-0">
+                            <dt class="col-5 text-muted">Nom</dt>
+                            <dd class="col-7">{{ dossier.partieAdversePrenom }} {{ dossier.partieAdverseNom }}</dd>
+                            <dt class="col-5 text-muted">Type</dt>
+                            <dd class="col-7">{{ dossier.partieAdverseType.value }}</dd>
+                            {% if dossier.partieAdverseEntreprise %}
+                            <dt class="col-5 text-muted">Société</dt>
+                            <dd class="col-7">{{ dossier.partieAdverseEntreprise }}</dd>
+                            {% endif %}
+                        </dl>
+                        {% else %}
+                        <p class="text-muted small mb-0">Aucune partie adverse renseignée</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Parties adverses -->
+    <div class="tab-pane fade" id="tab-parties">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="mb-0">Parties adverses</h6>
+            <button class="btn btn-sm btn-primary" @click="showAddPartie = !showAddPartie"><i class="fa fa-plus me-1"></i>Ajouter</button>
+        </div>
+        <div class="card mb-3" x-show="showAddPartie">
+            <div class="card-header small">Nouvelle partie adverse</div>
+            <div class="card-body">
+                <div class="row g-2">
+                    <div class="col-md-3"><input class="form-control form-control-sm" x-model="newPartie.nom" placeholder="Nom"></div>
+                    <div class="col-md-3"><input class="form-control form-control-sm" x-model="newPartie.prenom" placeholder="Prénom"></div>
+                    <div class="col-md-3"><input class="form-control form-control-sm" x-model="newPartie.entreprise" placeholder="Société"></div>
+                    <div class="col-md-3"><input class="form-control form-control-sm" x-model="newPartie.avocatAdverse" placeholder="Avocat adverse"></div>
+                </div>
+                <div class="mt-2 text-end">
+                    <button class="btn btn-sm btn-primary" @click="addPartie()">Enregistrer</button>
+                    <button class="btn btn-sm btn-outline-secondary ms-1" @click="showAddPartie = false">Annuler</button>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-body p-0">
+                <template x-if="parties.length === 0">
+                    <div class="text-center py-4 text-muted small">Aucune partie adverse</div>
+                </template>
+                <template x-for="p in parties" :key="p.id">
+                    <div class="d-flex align-items-center gap-3 px-4 py-3 border-bottom">
+                        <div class="flex-grow-1">
+                            <div class="fw-semibold small" x-text="p.nomComplet"></div>
+                            <div class="small text-muted" x-text="[p.avocatAdverse ? 'Avocat : ' + p.avocatAdverse : '', p.barreauAdverse].filter(Boolean).join(' | ')"></div>
+                        </div>
+                        <span class="badge bg-light text-dark" x-text="p.typePartie"></span>
+                        <button class="btn btn-sm btn-outline-danger" @click="deletePartie(p.id)"><i class="fa fa-trash"></i></button>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </div>
+
+    <!-- Échéances -->
+    <div class="tab-pane fade" id="tab-echeances">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="mb-0">Échéances</h6>
+            <button class="btn btn-sm btn-primary" @click="showAddEcheance = !showAddEcheance"><i class="fa fa-plus me-1"></i>Ajouter</button>
+        </div>
+        <div class="card mb-3" x-show="showAddEcheance">
+            <div class="card-body">
+                <div class="row g-2">
+                    <div class="col-md-3">
+                        <select class="form-select form-select-sm" x-model="newEcheance.type">
+                            <option value="Audience">Audience</option>
+                            <option value="Délai de recours">Délai de recours</option>
+                            <option value="Délai de conclusions">Délai de conclusions</option>
+                            <option value="Dépôt de pièces">Dépôt de pièces</option>
+                            <option value="Expertise">Expertise</option>
+                            <option value="Autre">Autre</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3"><input type="date" class="form-control form-control-sm" x-model="newEcheance.date"></div>
+                    <div class="col-md-6"><input class="form-control form-control-sm" x-model="newEcheance.description" placeholder="Description"></div>
+                </div>
+                <div class="mt-2 text-end">
+                    <button class="btn btn-sm btn-primary" @click="addEcheance()">Enregistrer</button>
+                    <button class="btn btn-sm btn-outline-secondary ms-1" @click="showAddEcheance = false">Annuler</button>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-body p-0">
+                <template x-if="echeances.length === 0">
+                    <div class="text-center py-4 text-muted small">Aucune échéance</div>
+                </template>
+                <template x-for="e in echeances" :key="e.id">
+                    <div class="d-flex align-items-center gap-3 px-4 py-3 border-bottom">
+                        <div class="text-center flex-shrink-0" style="width:48px">
+                            <div class="fw-bold small" :style="`color:${e.joursRestants <= 7 ? '#EF4444' : e.joursRestants <= 14 ? '#F97316' : '#374151'}`" x-text="e.joursRestants + 'j'"></div>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="fw-semibold small" x-text="e.type"></div>
+                            <div class="small text-muted" x-text="e.description"></div>
+                        </div>
+                        <div class="small text-muted" x-text="new Date(e.date).toLocaleDateString('fr-FR')"></div>
+                        <select class="form-select form-select-sm" style="width:auto" @change="changeStatutEcheance(e.id, $event.target.value)">
+                            <option :selected="e.statut === 'À venir'" value="À venir">À venir</option>
+                            <option :selected="e.statut === 'En cours'" value="En cours">En cours</option>
+                            <option :selected="e.statut === 'Terminée'" value="Terminée">Terminée</option>
+                            <option :selected="e.statut === 'Annulée'" value="Annulée">Annulée</option>
+                        </select>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chronologie -->
+    <div class="tab-pane fade" id="tab-chronologie">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="mb-0">Chronologie</h6>
+            <button class="btn btn-sm btn-primary" @click="showAddChrono = !showAddChrono"><i class="fa fa-plus me-1"></i>Ajouter</button>
+        </div>
+        <div class="card mb-3" x-show="showAddChrono">
+            <div class="card-body">
+                <div class="row g-2">
+                    <div class="col-md-3">
+                        <select class="form-select form-select-sm" x-model="newChrono.type">
+                            <option value="note">Note</option>
+                            <option value="appel">Appel</option>
+                            <option value="email">Email</option>
+                            <option value="courrier">Courrier</option>
+                            <option value="audience">Audience</option>
+                            <option value="reunion">Réunion</option>
+                            <option value="acte">Acte</option>
+                            <option value="decision">Décision</option>
+                            <option value="autre">Autre</option>
+                        </select>
+                    </div>
+                    <div class="col-md-5"><input class="form-control form-control-sm" x-model="newChrono.titre" placeholder="Titre"></div>
+                    <div class="col-md-4"><input type="datetime-local" class="form-control form-control-sm" x-model="newChrono.date"></div>
+                    <div class="col-12"><textarea class="form-control form-control-sm" x-model="newChrono.description" rows="2" placeholder="Description..."></textarea></div>
+                </div>
+                <div class="mt-2 text-end">
+                    <button class="btn btn-sm btn-primary" @click="addChrono()">Enregistrer</button>
+                    <button class="btn btn-sm btn-outline-secondary ms-1" @click="showAddChrono = false">Annuler</button>
+                </div>
+            </div>
+        </div>
+        <div>
+            <template x-if="chronologie.length === 0">
+                <div class="text-center py-4 text-muted small">Aucun événement</div>
+            </template>
+            <template x-for="e in chronologie" :key="e.id">
+                <div class="d-flex gap-3 mb-3">
+                    <div class="d-flex flex-column align-items-center" style="min-width:40px">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center" :style="`background:${e.typeCouleur}20;width:36px;height:36px;border:2px solid ${e.typeCouleur}`">
+                            <i :class="`fa ${e.typeIcon} fa-sm`" :style="`color:${e.typeCouleur}`"></i>
+                        </div>
+                        <div class="border-start flex-grow-1 mt-1" style="width:2px;margin-left:17px;background:#e5e7eb"></div>
+                    </div>
+                    <div class="flex-grow-1 pb-2">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="fw-semibold small" x-text="e.titre"></div>
+                            <div class="small text-muted" x-text="new Date(e.date).toLocaleString('fr-FR')"></div>
+                        </div>
+                        <div class="small text-muted" x-show="e.description" x-text="e.description"></div>
+                        <span class="badge bg-light text-dark border small mt-1" x-text="e.typeLabel" x-show="!e.auto"></span>
+                        <span class="badge bg-light text-muted border small mt-1" x-show="e.auto">Auto</span>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </div>
+
+    <!-- Documents -->
+    <div class="tab-pane fade" id="tab-documents">
+        <div class="text-center py-4 text-muted small">
+            <i class="fa fa-folder-open fa-2x mb-2 d-block"></i>
+            Gestion documentaire (upload à implémenter)
+        </div>
+    </div>
+
+    <!-- Actes générés -->
+    <div class="tab-pane fade" id="tab-actes">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="mb-0">Actes générés</h6>
+            <a href="{{ path('acte_index') }}" class="btn btn-sm btn-primary"><i class="fa fa-plus me-1"></i>Générer un acte</a>
+        </div>
+        <template x-if="actes.length === 0">
+            <div class="text-center py-4 text-muted small">Aucun acte généré</div>
+        </template>
+        <div class="list-group">
+            <template x-for="a in actes" :key="a.id">
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="fw-semibold small" x-text="a.nom"></div>
+                        <div class="small text-muted" x-text="new Date(a.dateGeneration).toLocaleString('fr-FR')"></div>
+                    </div>
+                    <div class="btn-group btn-group-sm">
+                        <a :href="`/api/actes-generes/${a.id}/pdf`" class="btn btn-outline-danger"><i class="fa fa-file-pdf"></i> PDF</a>
+                        <a :href="`/api/actes-generes/${a.id}/docx`" class="btn btn-outline-primary"><i class="fa fa-file-word"></i> Word</a>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </div>
+
+</div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+function dossierDetail(dossierId) {
+    return {
+        parties: [], echeances: [], chronologie: [], documents: [], actes: [],
+        urgentes: 0,
+        showAddPartie: false, showAddEcheance: false, showAddChrono: false,
+        newPartie: {nom:'',prenom:'',entreprise:'',avocatAdverse:'', typePartie:'Personne physique'},
+        newEcheance: {type:'Audience', date:'', description:''},
+        newChrono: {type:'note', titre:'', description:'', date: new Date().toISOString().slice(0,16)},
+
+        async init() {
+            const data = await api.get(`/api/dossiers/${dossierId}/echeances`);
+            if (data.success) {
+                this.urgentes = data.data.filter(e => e.joursRestants <= 7 && e.statut === 'À venir').length;
+            }
+        },
+
+        async loadParties() {
+            if (this.parties.length) return;
+            const d = await api.get(`/api/dossiers/${dossierId}/parties-adverses`);
+            if (d.success) this.parties = d.data;
+        },
+
+        async loadEcheances() {
+            const d = await api.get(`/api/dossiers/${dossierId}/echeances`);
+            if (d.success) this.echeances = d.data;
+        },
+
+        async loadChronologie() {
+            if (this.chronologie.length) return;
+            const d = await api.get(`/api/dossiers/${dossierId}/chronologie`);
+            if (d.success) this.chronologie = d.data;
+        },
+
+        async loadDocuments() {},
+
+        async loadActes() {
+            if (this.actes.length) return;
+            const d = await api.get(`/api/actes-generes?dossierId=${dossierId}`);
+            if (d.success) this.actes = d.data;
+        },
+
+        async addPartie() {
+            const d = await api.post('/api/parties-adverses', {...this.newPartie, dossierId});
+            if (d.success) {
+                this.parties.unshift(d.data);
+                this.newPartie = {nom:'',prenom:'',entreprise:'',avocatAdverse:'',typePartie:'Personne physique'};
+                this.showAddPartie = false;
+                notify('Partie adverse ajoutée');
+            } else notify(d.error, 'error');
+        },
+
+        async deletePartie(id) {
+            if (!confirm('Supprimer ?')) return;
+            const d = await api.delete(`/api/parties-adverses/${id}`);
+            if (d.success) { this.parties = this.parties.filter(p => p.id !== id); notify('Supprimé'); }
+        },
+
+        async addEcheance() {
+            const d = await api.post('/api/echeances', {...this.newEcheance, dossierId});
+            if (d.success) {
+                this.echeances.push(d.data);
+                this.newEcheance = {type:'Audience', date:'', description:''};
+                this.showAddEcheance = false;
+                notify('Échéance ajoutée');
+            } else notify(d.error, 'error');
+        },
+
+        async changeStatutEcheance(id, statut) {
+            await api.patch(`/api/echeances/${id}/statut`, {statut});
+        },
+
+        async addChrono() {
+            const d = await api.post(`/api/dossiers/${dossierId}/chronologie`, this.newChrono);
+            if (d.success) {
+                this.chronologie.unshift(d.data);
+                this.newChrono = {type:'note', titre:'', description:'', date: new Date().toISOString().slice(0,16)};
+                this.showAddChrono = false;
+                notify('Événement ajouté');
+            } else notify(d.error, 'error');
+        }
+    };
+}
+</script>
+{% endblock %}

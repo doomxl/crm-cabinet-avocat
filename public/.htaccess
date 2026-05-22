@@ -1,0 +1,14 @@
+# Use the front controller as index file.
+DirectoryIndex index.php
+
+Options -MultiViews
+
+RewriteEngine On
+
+# Determine the RewriteBase automatically and set it as environment variable.
+RewriteRule ^index\.php$ - [L]
+
+# If the requested filename exists, simply serve it.
+# We only want to let Apache serve files and not directories.
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^(.*)$ index.php [QSA,L]

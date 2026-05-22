@@ -1,0 +1,122 @@
+{% extends 'base.html.twig' %}
+{% block title %}Échéances - CRM Cabinet{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ path('dashboard_index') }}">Accueil</a></li>
+<li class="breadcrumb-item active">Échéances</li>
+{% endblock %}
+{% block content %}
+<div x-data="echeances()" x-init="init()">
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0 fw-bold"><i class="fa fa-clock text-danger me-2"></i>Échéances</h4>
+</div>
+
+<!-- Filtres -->
+<div class="card mb-3">
+    <div class="card-body py-2">
+        <div class="row g-2">
+            <div class="col-md-3">
+                <select class="form-select form-select-sm" x-model="filtreStatut" @change="applyFilters()">
+                    <option value="">Tous les statuts</option>
+                    {% for statut in statuts %}
+                    <option value="{{ statut.value }}">{{ statut.label() }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select form-select-sm" x-model="filtreUrgence" @change="applyFilters()">
+                    <option value="">Toutes</option>
+                    <option value="3">Critiques (&lt; 3j)</option>
+                    <option value="7">Urgentes (&lt; 7j)</option>
+                    <option value="14">Attention (&lt; 14j)</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr><th>Urgence</th><th>Type</th><th>Dossier</th><th>Date</th><th>Description</th><th>Statut</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+                <template x-if="echeancesFiltrees.length === 0">
+                    <tr><td colspan="7" class="text-center py-4 text-muted"><i class="fa fa-check-circle text-success me-2"></i>Aucune échéance</td></tr>
+                </template>
+                <template x-for="e in echeancesFiltrees" :key="e.id">
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="rounded-circle" :style="`width:10px;height:10px;background:${e.urgence.couleur}`"></div>
+                                <span class="small fw-bold" :style="`color:${e.urgence.couleur}`" x-text="e.urgence.texte"></span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark border" x-text="e.type"></span>
+                        </td>
+                        <td>
+                            <a :href="`/dossiers/${e.dossierId}`" class="text-decoration-none small fw-semibold" x-text="e.dossierTitre || '—'"></a>
+                        </td>
+                        <td class="small" x-text="new Date(e.date).toLocaleDateString('fr-FR')"></td>
+                        <td class="small text-muted" x-text="e.description || '—'"></td>
+                        <td>
+                            <select class="form-select form-select-sm" style="width:auto" @change="changeStatut(e.id, $event.target.value)">
+                                {% for statut in statuts %}
+                                <option value="{{ statut.value }}" x-bind:selected="e.statut === '{{ statut.value }}'">{{ statut.label() }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-danger" @click="deleteEcheance(e.id)"><i class="fa fa-trash"></i></button>
+                        </td>
+                    </tr>
+                </template>
+            </tbody>
+        </table>
+    </div>
+</div>
+</div>
+{% endblock %}
+{% block javascripts %}
+<script>
+function echeances() {
+    return {
+        echeances: [], echeancesFiltrees: [],
+        filtreStatut: 'À venir', filtreUrgence: '',
+
+        async init() {
+            const data = await api.get('/api/echeances');
+            if (data.success) { this.echeances = data.data; this.applyFilters(); }
+        },
+
+        applyFilters() {
+            let filtered = this.echeances;
+            if (this.filtreStatut) filtered = filtered.filter(e => e.statut === this.filtreStatut);
+            if (this.filtreUrgence) filtered = filtered.filter(e => e.joursRestants <= parseInt(this.filtreUrgence));
+            this.echeancesFiltrees = filtered;
+        },
+
+        async changeStatut(id, statut) {
+            const data = await api.patch(`/api/echeances/${id}/statut`, {statut});
+            if (data.success) {
+                const e = this.echeances.find(e => e.id === id);
+                if (e) e.statut = statut;
+                this.applyFilters();
+                notify('Statut mis à jour');
+            }
+        },
+
+        async deleteEcheance(id) {
+            if (!confirm('Supprimer cette échéance ?')) return;
+            const data = await api.delete(`/api/echeances/${id}`);
+            if (data.success) {
+                this.echeances = this.echeances.filter(e => e.id !== id);
+                this.applyFilters();
+                notify('Supprimé');
+            }
+        }
+    };
+}
+</script>
+{% endblock %}
