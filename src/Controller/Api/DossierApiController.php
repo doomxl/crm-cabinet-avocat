@@ -19,7 +19,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/api/dossiers', name: 'api_dossiers_')]
 class DossierApiController extends AbstractController
@@ -157,8 +157,8 @@ class DossierApiController extends AbstractController
         if (!$dossier) {
             return $this->json(['success' => false, 'error' => 'Dossier non trouvé'], 404);
         }
-        $events = $this->chronologieRepo->findByDossier($id);
-        return $this->json(['success' => true, 'data' => array_map(fn($e) => $e->toArray(), $events)]);
+        $events = $this->chronologieRepo->findByDossierFast($id);
+        return $this->json(['success' => true, 'data' => $events]);
     }
 
     #[Route('/{id}/chronologie', name: 'chronologie_add', methods: ['POST'])]

@@ -55,7 +55,5 @@ jobs:
             cd /var/www/crm-cabinet-avocat
             echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             docker compose pull php
+            docker compose run --rm php php bin/console doctrine:migrations:migrate --no-interaction
             docker compose up -d --force-recreate php
-            echo "Attente de la stabilisation..."
-            sleep 10
-            docker compose exec -T php php bin/console doctrine:migrations:migrate --no-interaction

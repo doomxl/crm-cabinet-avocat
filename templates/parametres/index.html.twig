@@ -71,7 +71,7 @@
         <div class="card mb-4">
             <div class="card-header fw-semibold"><i class="fa fa-user-tie me-2 text-primary"></i>Avocat titulaire</div>
             <div class="card-body">
-                <p class="small text-muted mb-3">Ces informations sont utilisées dans la génération des actes (<code>{{avocat_nom}}</code>, <code>{{avocat_barreau}}</code>, <code>{{avocat_numero}}</code>).</p>
+                <p class="small text-muted mb-3">Ces informations sont utilisées dans la génération des actes (<code>{{ '{{avocat_nom}}' }}</code>, <code>{{ '{{avocat_barreau}}' }}</code>, <code>{{ '{{avocat_numero}}' }}</code>).</p>
                 <div class="row g-3">
                     <div class="col-12">
                         <label class="form-label small fw-semibold">Nom complet de l'avocat</label>
@@ -127,7 +127,7 @@ function parametresPage() {
             const barreau = this.form.avocatBarreau || '[Barreau]';
             const numero  = this.form.avocatNumero  || '[N° ordre]';
             const ville   = this.form.ville         || '[Ville]';
-            return `Fait à ${ville}, le {{date_longue}}\n\n${nom}\nAvocat au Barreau de ${barreau}\nN° ordre : ${numero}`;
+            return `Fait à ${ville}, le {{ '{{date_longue}}' }}\n\n${nom}\nAvocat au Barreau de ${barreau}\nN° ordre : ${numero}`;
         },
 
         async init() {

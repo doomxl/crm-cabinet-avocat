@@ -8,24 +8,29 @@
 <li class="breadcrumb-item active">{{ dossier.titre|slice(0, 40) }}</li>
 {% endblock %}
 
+{% block stylesheets %}
+<style>
+    .chrono-item:last-child .chrono-line { display: none; }
+</style>
+{% endblock %}
+
 {% block content %}
 <div x-data="dossierDetail({{ dossier.id }})" x-init="init()">
 
 <!-- Header -->
 <div class="d-flex justify-content-between align-items-start mb-4">
-    <div class="d-flex align-items-center gap-3">
-        <div class="rounded" style="width:8px;height:48px;background:{{ dossier.couleur }}"></div>
-        <div>
-            <h4 class="fw-bold mb-1">{{ dossier.titre }}</h4>
-            <div class="d-flex gap-2 align-items-center">
-                {% if dossier.matiere %}
-                <span class="badge" style="background:{{ dossier.matiere.couleur() }}">{{ dossier.matiere.label() }}</span>
-                {% endif %}
-                <span class="badge {{ dossier.statut.badgeClass() }}">{{ dossier.statut.label() }}</span>
-                <a href="{{ path('client_show', {id: dossier.client.id}) }}" class="text-decoration-none small text-muted">
-                    <i class="fa fa-user me-1"></i>{{ dossier.client.nomComplet }}
-                </a>
-            </div>
+    <div>
+        <h4 class="fw-bold mb-1">{{ dossier.titre }}</h4>
+        <div class="fw-semibold mb-1">
+            <a href="{{ path('client_show', {id: dossier.client.id}) }}" class="text-decoration-none flash-color">
+                {{ dossier.client.nomComplet }}
+            </a>
+        </div>
+        <div class="d-flex gap-2 align-items-center">
+            {% if dossier.matiere %}
+            <span class="badge" style="background:{{ dossier.matiere.couleur() }}">{{ dossier.matiere.label() }}</span>
+            {% endif %}
+            <span class="badge {{ dossier.statut.badgeClass() }}">{{ dossier.statut.label() }}</span>
         </div>
     </div>
     <div class="d-flex gap-2">
@@ -238,37 +243,43 @@
                 </div>
             </div>
         </div>
-        <div>
+        <div class="card">
+            <div class="card-body">
             <template x-if="chronologie.length === 0">
                 <div class="text-center py-4 text-muted small">Aucun événement</div>
             </template>
             <template x-for="e in chronologie" :key="e.id">
-                <div class="d-flex gap-3 mb-3">
+                <div class="d-flex gap-3 chrono-item">
                     <div class="d-flex flex-column align-items-center" style="min-width:40px">
-                        <div class="rounded-circle d-flex align-items-center justify-content-center" :style="`background:${e.typeCouleur}20;width:36px;height:36px;border:2px solid ${e.typeCouleur}`">
-                            <i :class="`fa ${e.typeIcon} fa-sm`" :style="`color:${e.typeCouleur}`"></i>
+                        <div class="rounded-circle d-flex align-items-center justify-content-center" style="background:#da870c20;width:36px;height:36px;border:2px solid #da870c">
+                            <i :class="`fa ${e.typeIcon} fa-sm`" style="color:#da870c"></i>
                         </div>
-                        <div class="border-start flex-grow-1 mt-1" style="width:2px;margin-left:17px;background:#e5e7eb"></div>
+                        <div class="chrono-line" style="width:2px;flex-grow:1;background:#e5e7eb"></div>
                     </div>
-                    <div class="flex-grow-1 pb-2">
+                    <div class="flex-grow-1 pb-3">
                         <div class="d-flex justify-content-between align-items-start">
                             <div class="fw-semibold small" x-text="e.titre"></div>
                             <div class="small text-muted" x-text="new Date(e.date).toLocaleString('fr-FR')"></div>
                         </div>
-                        <div class="small text-muted" x-show="e.description" x-text="e.description"></div>
+                        <div class="small text-muted" x-show="e.description" x-text="e.description" style="white-space:pre-wrap"></div>
                         <span class="badge bg-light text-dark border small mt-1" x-text="e.typeLabel" x-show="!e.auto"></span>
                         <span class="badge bg-light text-muted border small mt-1" x-show="e.auto">Auto</span>
                     </div>
                 </div>
             </template>
+            </div>
         </div>
     </div>
 
     <!-- Documents -->
     <div class="tab-pane fade" id="tab-documents">
-        <div class="text-center py-4 text-muted small">
-            <i class="fa fa-folder-open fa-2x mb-2 d-block"></i>
-            Gestion documentaire (upload à implémenter)
+        <div class="card">
+            <div class="card-body p-0">
+                <div class="text-center py-4 text-muted small">
+                    <i class="fa fa-folder-open fa-2x mb-2 d-block"></i>
+                    Gestion documentaire (upload à implémenter)
+                </div>
+            </div>
         </div>
     </div>
 
@@ -278,22 +289,24 @@
             <h6 class="mb-0">Actes générés</h6>
             <a href="{{ path('acte_index') }}" class="btn btn-sm btn-primary"><i class="fa fa-plus me-1"></i>Générer un acte</a>
         </div>
-        <template x-if="actes.length === 0">
-            <div class="text-center py-4 text-muted small">Aucun acte généré</div>
-        </template>
-        <div class="list-group">
-            <template x-for="a in actes" :key="a.id">
-                <div class="list-group-item d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="fw-semibold small" x-text="a.nom"></div>
-                        <div class="small text-muted" x-text="new Date(a.dateGeneration).toLocaleString('fr-FR')"></div>
+        <div class="card">
+            <div class="card-body p-0">
+                <template x-if="actes.length === 0">
+                    <div class="text-center py-4 text-muted small">Aucun acte généré</div>
+                </template>
+                <template x-for="a in actes" :key="a.id">
+                    <div class="d-flex justify-content-between align-items-center px-4 py-3 border-bottom">
+                        <div>
+                            <div class="fw-semibold small" x-text="a.nom"></div>
+                            <div class="small text-muted" x-text="new Date(a.dateGeneration).toLocaleString('fr-FR')"></div>
+                        </div>
+                        <div class="btn-group btn-group-sm">
+                            <a :href="`/api/actes-generes/${a.id}/pdf`" class="btn btn-outline-danger"><i class="fa fa-file-pdf"></i> PDF</a>
+                            <a :href="`/api/actes-generes/${a.id}/docx`" class="btn btn-outline-primary"><i class="fa fa-file-word"></i> Word</a>
+                        </div>
                     </div>
-                    <div class="btn-group btn-group-sm">
-                        <a :href="`/api/actes-generes/${a.id}/pdf`" class="btn btn-outline-danger"><i class="fa fa-file-pdf"></i> PDF</a>
-                        <a :href="`/api/actes-generes/${a.id}/docx`" class="btn btn-outline-primary"><i class="fa fa-file-word"></i> Word</a>
-                    </div>
-                </div>
-            </template>
+                </template>
+            </div>
         </div>
     </div>
 
