@@ -13,6 +13,8 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction --no-script
 
 COPY . .
 
+ARG APP_VERSION=dev
+ENV APP_VERSION=${APP_VERSION}
 ENV APP_ENV=prod
 ENV APP_SECRET=changeme
 ENV DATABASE_URL="postgresql://postgres:postgres@database:5432/crm_cabinet?serverVersion=18&charset=utf8"
