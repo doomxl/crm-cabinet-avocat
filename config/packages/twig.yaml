@@ -2,7 +2,7 @@ twig:
     file_name_pattern: '*.twig'
     globals:
         app_name: 'CRM Cabinet Avocat'
-        app_version: '%env(default:dev:APP_VERSION)%'
+        app_version: '%env(APP_VERSION)%'
 
 when@test:
     twig:
