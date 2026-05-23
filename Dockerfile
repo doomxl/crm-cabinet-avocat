@@ -1,6 +1,6 @@
 FROM dunglas/frankenphp:latest-php8.3-bookworm
 
-RUN install-php-extensions pdo_pgsql intl zip opcache
+RUN install-php-extensions pdo_pgsql intl zip opcache gd
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
