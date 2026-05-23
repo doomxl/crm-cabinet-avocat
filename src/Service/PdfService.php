@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Entity\ActeGenere;
 use App\Entity\CabinetConfig;
 use App\Entity\Facture;
+use App\Service\TemplateMoteurService;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 use Twig\Environment;
@@ -13,6 +14,7 @@ class PdfService
 {
     public function __construct(
         private readonly Environment $twig,
+        private readonly TemplateMoteurService $templateService,
     ) {}
 
     private function createDompdf(): Dompdf
@@ -44,9 +46,12 @@ class PdfService
 
     public function genererActePdf(ActeGenere $acte, CabinetConfig $config): string
     {
+        $contenuResolu = $this->templateService->markdownVersHtml($acte->getContenu() ?? '');
+
         $html = $this->twig->render('pdf/acte.html.twig', [
-            'acte' => $acte,
-            'config' => $config,
+            'acte'          => $acte,
+            'config'        => $config,
+            'contenuResolu' => $contenuResolu,
         ]);
 
         $dompdf = $this->createDompdf();

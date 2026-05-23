@@ -3,6 +3,7 @@
 namespace App\Controller\Api;
 
 use App\Entity\ActeGenere;
+use App\Enum\StatutActeEnum;
 use App\Repository\ActeGenereRepository;
 use App\Repository\CabinetConfigRepository;
 use App\Repository\ClientRepository;
@@ -34,6 +35,26 @@ class ActeGenereApiController extends AbstractController
         private readonly PdfService $pdfService,
         private readonly WordService $wordService,
     ) {}
+
+    #[Route('/preview', name: 'preview', methods: ['POST'])]
+    public function preview(Request $request): JsonResponse
+    {
+        $data    = json_decode($request->getContent(), true) ?? [];
+        $contenu = $data['contenu'] ?? '';
+
+        if (!empty($data['dossierId'])) {
+            $dossier = $this->dossierRepo->find($data['dossierId']);
+            if ($dossier) {
+                $config   = $this->configRepo->getConfig();
+                $parties  = $this->partieRepo->findByDossier($dossier->getId());
+                $variables = $this->templateService->construireVariables($dossier, $parties, $config);
+                $contenu  = $this->templateService->resoudre($contenu, $variables);
+                $contenu  = $this->templateService->markdownVersHtml($contenu);
+            }
+        }
+
+        return $this->json(['success' => true, 'contenu' => $contenu]);
+    }
 
     #[Route('', name: 'list', methods: ['GET'])]
     public function list(Request $request): JsonResponse
@@ -70,8 +91,7 @@ class ActeGenereApiController extends AbstractController
         if ($dossier && $modele?->getContenu()) {
             $config = $this->configRepo->getConfig();
             $parties = $this->partieRepo->findByDossier($dossier->getId());
-            $premierPartie = $parties[0] ?? null;
-            $variables = $this->templateService->construireVariables($dossier, $premierPartie, $config);
+            $variables = $this->templateService->construireVariables($dossier, $parties, $config);
             $contenu = $this->templateService->resoudre($modele->getContenu(), $variables);
         }
 
@@ -105,6 +125,25 @@ class ActeGenereApiController extends AbstractController
         if (isset($data['nom'])) $acte->setNom($data['nom']);
         if (isset($data['contenu'])) $acte->setContenu($data['contenu']);
         $this->em->flush();
+        return $this->json(['success' => true, 'data' => $acte->toArray()]);
+    }
+
+    #[Route('/{id}/statut', name: 'update_statut', methods: ['PATCH'])]
+    public function updateStatut(int $id, Request $request): JsonResponse
+    {
+        $acte = $this->repo->find($id);
+        if (!$acte) return $this->json(['success' => false, 'error' => 'Non trouvé'], 404);
+
+        $data = json_decode($request->getContent(), true) ?? [];
+        $nouveau = StatutActeEnum::tryFrom($data['statut'] ?? '');
+
+        if (!$nouveau) {
+            return $this->json(['success' => false, 'error' => 'Statut invalide'], 422);
+        }
+
+        $acte->setStatut($nouveau);
+        $this->em->flush();
+
         return $this->json(['success' => true, 'data' => $acte->toArray()]);
     }
 

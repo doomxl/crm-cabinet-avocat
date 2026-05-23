@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Enum\CiviliteEnum;
 use App\Enum\TypeClientEnum;
 use App\Repository\ClientRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -23,6 +24,9 @@ class Client
 
     #[ORM\Column(name: 'type_client', type: 'string', enumType: TypeClientEnum::class)]
     private TypeClientEnum $typeClient = TypeClientEnum::Particulier;
+
+    #[ORM\Column(name: 'civilite', type: 'string', enumType: CiviliteEnum::class, nullable: true)]
+    private ?CiviliteEnum $civilite = null;
 
     #[ORM\Column(name: 'nom', type: 'string', length: 255)]
     private string $nom = '';
@@ -102,6 +106,8 @@ class Client
     public function setCodeClient(?string $codeClient): static { $this->codeClient = $codeClient; return $this; }
     public function getTypeClient(): TypeClientEnum { return $this->typeClient; }
     public function setTypeClient(TypeClientEnum $typeClient): static { $this->typeClient = $typeClient; return $this; }
+    public function getCivilite(): ?CiviliteEnum { return $this->civilite; }
+    public function setCivilite(?CiviliteEnum $civilite): static { $this->civilite = $civilite; return $this; }
     public function getNom(): string { return $this->nom; }
     public function setNom(string $nom): static { $this->nom = $nom; return $this; }
     public function getPrenom(): ?string { return $this->prenom; }
@@ -147,6 +153,7 @@ class Client
             'id' => $this->id,
             'codeClient' => $this->codeClient,
             'typeClient' => $this->typeClient->value,
+            'civilite' => $this->civilite?->value,
             'nom' => $this->nom,
             'prenom' => $this->prenom,
             'nomComplet' => $this->getNomComplet(),

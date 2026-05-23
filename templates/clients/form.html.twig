@@ -44,7 +44,15 @@
         <div class="card-header">Identité</div>
         <div class="card-body">
             <div class="row g-3">
-                <div class="col-md-6" x-show="form.typeClient !== 'Entreprise'">
+                <div class="col-md-2" x-show="form.typeClient === 'Particulier' || form.typeClient === 'Professionnel'">
+                    <label class="form-label small fw-semibold">Civilité</label>
+                    <select class="form-select" x-model="form.civilite">
+                        <option value="">—</option>
+                        <option value="M.">M.</option>
+                        <option value="Mme">Mme</option>
+                    </select>
+                </div>
+                <div :class="(form.typeClient === 'Particulier' || form.typeClient === 'Professionnel') ? 'col-md-4' : 'col-md-6'" x-show="form.typeClient !== 'Entreprise'">
                     <label class="form-label small fw-semibold">Nom <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" x-model="form.nom" placeholder="Nom de famille">
                 </div>
@@ -144,6 +152,7 @@ function clientForm() {
         clientId: {{ client ? client.id : 'null' }},
         form: {
             typeClient: '{{ client ? client.typeClient.value : 'Particulier' }}',
+            civilite: '{{ client ? (client.civilite ? client.civilite.value : '') : '' }}',
             nom: '{{ client ? client.nom|escape('js') : '' }}',
             prenom: '{{ client ? client.prenom|escape('js') : '' }}',
             email: '{{ client ? client.email|escape('js') : '' }}',

@@ -157,12 +157,17 @@
     /* Saut de page -->
     .saut-page { page-break-after: always; }
 
-    /* Contenu de l'acte (préservation des sauts de ligne) -->
+    /* Contenu de l'acte */
     .contenu-acte {
-        white-space: pre-wrap;
         word-break: break-word;
     }
-    .contenu-acte p { margin-bottom: 12px; }
+    .contenu-acte p  { margin-bottom: 10px; }
+    .contenu-acte h1 { font-size: 16px; font-weight: bold; text-align: center; margin: 16px 0 8px; text-transform: uppercase; letter-spacing: .05em; }
+    .contenu-acte h2 { font-size: 14px; font-weight: bold; margin: 14px 0 6px; }
+    .contenu-acte h3 { font-size: 12px; font-weight: bold; margin: 10px 0 4px; }
+    .contenu-acte ul, .contenu-acte ol { padding-left: 22px; margin-bottom: 10px; }
+    .contenu-acte li { margin-bottom: 3px; }
+    .contenu-acte hr { border: none; border-top: 1px solid #aaa; margin: 12px 0; }
 </style>
 </head>
 <body>
@@ -170,14 +175,14 @@
 <!-- En-tête -->
 <div class="header">
     <div class="header-left">
-        <div class="cabinet-nom">{{ config.nomCabinet }}</div>
+        <div class="cabinet-nom">{{ config.nom }}</div>
         <div class="cabinet-coordonnees">
             {% if config.adresse %}{{ config.adresse }}<br>{% endif %}
             {% if config.ville %}{{ config.codePostal }} {{ config.ville }}<br>{% endif %}
             {% if config.telephone %}Tél. {{ config.telephone }}{% endif %}
             {% if config.email %} — {{ config.email }}{% endif %}
-            {% if config.barreau %}<br>Barreau de {{ config.barreau }}{% endif %}
-            {% if config.toque %} — Toque n° {{ config.toque }}{% endif %}
+            {% if config.avocatBarreau %}<br>Barreau de {{ config.avocatBarreau }}{% endif %}
+            {% if config.avocatNumero %} — N° {{ config.avocatNumero }}{% endif %}
         </div>
     </div>
     <div class="header-right">
@@ -232,7 +237,7 @@
 
 <!-- Corps de l'acte -->
 <div class="corps">
-    <div class="contenu-acte">{{ contenuResolu }}</div>
+    <div class="contenu-acte">{{ contenuResolu|raw }}</div>
 </div>
 
 <!-- Zone de signatures -->
@@ -247,10 +252,10 @@
     </div>
     <div class="signature-right">
         <div class="signature-label">L'avocat :</div>
-        <div class="signature-nom">{{ config.nomCabinet }}</div>
+        <div class="signature-nom">{{ config.nom }}</div>
         <div class="signature-ligne"></div>
         <div style="font-size:8px; color:#888; font-family: 'DejaVu Sans', Arial, sans-serif;">
-            {% if config.barreau %}Barreau de {{ config.barreau }}{% endif %}
+            {% if config.avocatBarreau %}Barreau de {{ config.avocatBarreau }}{% endif %}
         </div>
     </div>
 </div>
@@ -264,7 +269,7 @@
 <div class="footer">
     <table class="footer-inner">
         <tr>
-            <td>{{ config.nomCabinet }}{% if config.siret %} — SIRET {{ config.siret }}{% endif %}</td>
+            <td>{{ config.nom }}{% if config.siret %} — SIRET {{ config.siret }}{% endif %}</td>
             <td>{{ acte.nom }}</td>
             <td>Page <span class="pagenum"></span></td>
         </tr>

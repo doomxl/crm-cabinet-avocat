@@ -39,6 +39,9 @@ class CabinetConfigApiController extends AbstractController
         if (array_key_exists('siret', $data)) $config->setSiret($data['siret'] ?: null);
         if (array_key_exists('couleursMatiere', $data)) $config->setCouleursMatiere($data['couleursMatiere']);
         if (isset($data['tauxHoraireDefaut'])) $config->setTauxHoraireDefaut((string)$data['tauxHoraireDefaut']);
+        if (array_key_exists('avocatNom', $data)) $config->setAvocatNom($data['avocatNom'] ?: null);
+        if (array_key_exists('avocatBarreau', $data)) $config->setAvocatBarreau($data['avocatBarreau'] ?: null);
+        if (array_key_exists('avocatNumero', $data)) $config->setAvocatNumero($data['avocatNumero'] ?: null);
 
         $this->em->flush();
         return $this->json(['success' => true, 'data' => $config->toArray()]);

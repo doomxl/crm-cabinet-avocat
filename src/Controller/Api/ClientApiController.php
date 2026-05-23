@@ -3,6 +3,7 @@
 namespace App\Controller\Api;
 
 use App\Entity\Client;
+use App\Enum\CiviliteEnum;
 use App\Enum\TypeClientEnum;
 use App\Repository\ClientRepository;
 use App\Repository\DossierRepository;
@@ -182,5 +183,9 @@ class ClientApiController extends AbstractController
         if (array_key_exists('codeAPE', $data)) $client->setCodeAPE($data['codeAPE'] ?: null);
         if (array_key_exists('cph', $data)) $client->setCph($data['cph'] ?: null);
         if (array_key_exists('codeClient', $data)) $client->setCodeClient($data['codeClient'] ?: null);
+        if (array_key_exists('civilite', $data)) {
+            $civ = CiviliteEnum::tryFrom($data['civilite'] ?? '');
+            $client->setCivilite($civ);
+        }
     }
 }

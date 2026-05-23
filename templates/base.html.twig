@@ -232,7 +232,13 @@
     <div class="nav-section" style="color: #da870c;">Contrôle</div>
 
     <a href="{{ path('conflit_index') }}" class="nav-link {{ app.request.get('_route') == 'conflit_index' ? 'active' : '' }}">
-        <i class="fa-solid fa-bolt-lightning"></i> Conflits 
+        <i class="fa-solid fa-bolt-lightning"></i> Conflits
+    </a>
+
+    <div class="nav-section" style="color: #da870c;">Administration</div>
+
+    <a href="{{ path('parametres_index') }}" class="nav-link {{ app.request.get('_route') == 'parametres_index' ? 'active' : '' }}">
+        <i class="fa fa-gear"></i> Paramètres
     </a>
 </nav>
 

@@ -6,17 +6,38 @@
 <li class="breadcrumb-item active">{{ acte.nom }}</li>
 {% endblock %}
 {% block content %}
-<div x-data="acteEditor({{ acte.id }})" x-init="init()">
+<div x-data="acteEditor({{ acte.id }}{% if acte.dossier %}, {{ acte.dossier.id }}{% else %}, null{% endif %}, '{{ acte.statut.value }}')" x-init="init()">
 
 <div class="d-flex justify-content-between align-items-start mb-4">
     <div>
         <h4 class="fw-bold mb-1"><i class="fa fa-file-contract text-primary me-2"></i><span x-text="acteNom">{{ acte.nom }}</span></h4>
-        <span class="small text-muted">Généré le {{ acte.dateGeneration|date('d/m/Y à H:i') }}</span>
-        {% if acte.dossier %}
-        <span class="ms-2 badge bg-light text-dark border">
-            <i class="fa fa-folder me-1"></i>{{ acte.dossier.titre|slice(0,40) }}
-        </span>
-        {% endif %}
+        <div class="d-flex align-items-center gap-2 mt-1 flex-wrap">
+            <span class="small text-muted">Généré le {{ acte.dateGeneration|date('d/m/Y à H:i') }}</span>
+            {% if acte.dossier %}
+            <span class="badge bg-light text-dark border">
+                <i class="fa fa-folder me-1"></i>{{ acte.dossier.titre|slice(0,40) }}
+            </span>
+            {% endif %}
+            <!-- Badge statut -->
+            <span class="badge" :class="'bg-' + statutConfig[statut]?.badge" x-text="statut"></span>
+            <!-- Transitions -->
+            <template x-if="statutConfig[statut]?.transitions.length > 0">
+                <div class="dropdown">
+                    <button class="btn btn-xs btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                        Changer le statut
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-sm">
+                        <template x-for="t in statutConfig[statut].transitions" :key="t">
+                            <li>
+                                <button class="dropdown-item small" @click="changerStatut(t)">
+                                    <span class="badge me-1" :class="'bg-' + statutConfig[t]?.badge" x-text="t"></span>
+                                </button>
+                            </li>
+                        </template>
+                    </ul>
+                </div>
+            </template>
+        </div>
     </div>
     <div class="d-flex gap-2">
         <button class="btn btn-sm btn-outline-secondary" @click="toggleVariables = !toggleVariables">
@@ -36,7 +57,7 @@
 
 <div class="row g-3">
     <!-- Panneau Variables -->
-    <div class="col-md-3" x-show="toggleVariables" x-transition>
+    <div class="col-md-3" x-show="toggleVariables" x-cloak x-transition>
         <div class="card h-100">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <span class="small fw-semibold">Variables disponibles</span>
@@ -44,35 +65,79 @@
                     <i class="fa fa-times"></i>
                 </button>
             </div>
-            <div class="card-body p-2" style="overflow-y:auto; max-height:600px;">
-                <div class="small text-muted mb-2">Cliquez sur une variable pour l'insérer dans l'éditeur.</div>
+            <div class="card-body p-2" style="overflow-y:auto; max-height:680px;">
+                <div class="small text-muted mb-2">Cliquez sur une variable pour l'insérer au curseur.</div>
+
                 <template x-for="groupe in groupesVariables" :key="groupe.titre">
                     <div class="mb-3">
-                        <div class="text-uppercase text-muted" style="font-size:0.65rem; letter-spacing:.05em;" x-text="groupe.titre"></div>
+                        <div class="fw-bold mb-1" style="font-size:0.75rem;" x-text="groupe.titre"></div>
                         <template x-for="v in groupe.variables" :key="v.code">
                             <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
-                                <div>
-                                    <code class="small" x-text="'{{'+v.code+'}}'" style="font-size:0.75rem;"></code>
-                                    <div class="text-muted" style="font-size:0.7rem;" x-text="v.label"></div>
+                                <div style="min-width:0; font-size:0.72rem;">
+                                    <span class="font-monospace flash-color" x-text="varTag(v.code)"></span>
+                                    <span class="text-muted fst-italic ms-1" style="font-size:0.68rem;" x-text="v.label"></span>
                                 </div>
-                                <button class="btn btn-xs btn-outline-primary ms-1" @click="insererVariable(v.code)" title="Insérer">
-                                    <i class="fa fa-plus"></i>
-                                </button>
+                                <i class="fa fa-plus ms-2 flex-shrink-0 flash-color" @click="insererVariable(v.code)" title="Insérer" style="cursor:pointer; font-size:0.65rem;"></i>
                             </div>
                         </template>
                     </div>
                 </template>
 
-                <div class="mt-3">
-                    <div class="text-uppercase text-muted mb-1" style="font-size:0.65rem; letter-spacing:.05em;">Blocs conditionnels</div>
-                    <div class="p-2 bg-light rounded small font-monospace mb-1" style="font-size:0.72rem;">
-                        &#123;&#123;#si variable&#125;&#125;<br>
-                        &nbsp;&nbsp;contenu si vrai<br>
-                        &#123;&#123;/si&#125;&#125;
+                <!-- Blocs syntaxiques -->
+                <div class="mt-2">
+                    <div class="fw-bold mb-2" style="font-size:0.75rem;">Blocs syntaxiques</div>
+
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fst-italic text-muted" style="font-size:0.7rem;">Conditionnel simple</span>
+                            <i class="fa fa-plus flash-color" @click="insererSnippet('si')" title="Insérer" style="cursor:pointer; font-size:0.65rem;"></i>
+                        </div>
+                        <div class="p-2 bg-light rounded font-monospace flash-color" style="font-size:0.7rem; white-space:pre;">{% verbatim %}{{#si variable}}
+  contenu si vrai
+{{/si}}{% endverbatim %}</div>
                     </div>
-                    <button class="btn btn-xs btn-outline-secondary w-100" @click="insererBloc()">
-                        <i class="fa fa-code me-1"></i>Insérer bloc conditionnel
-                    </button>
+
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fst-italic text-muted" style="font-size:0.7rem;">Conditionnel avec sinon</span>
+                            <i class="fa fa-plus flash-color" @click="insererSnippet('sinon')" title="Insérer" style="cursor:pointer; font-size:0.65rem;"></i>
+                        </div>
+                        <div class="p-2 bg-light rounded font-monospace flash-color" style="font-size:0.7rem; white-space:pre;">{% verbatim %}{{#si variable}}
+  contenu si vrai
+{{#sinon}}
+  contenu si faux
+{{/si}}{% endverbatim %}</div>
+                    </div>
+
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fst-italic text-muted" style="font-size:0.7rem;">Boucle parties adverses</span>
+                            <i class="fa fa-plus flash-color" @click="insererSnippet('pour')" title="Insérer" style="cursor:pointer; font-size:0.65rem;"></i>
+                        </div>
+                        <div class="p-2 bg-light rounded font-monospace flash-color" style="font-size:0.7rem; white-space:pre;">{% verbatim %}{{#pour partie in parties_adverses}}
+  {{partie.nom_complet}}
+  Me {{partie.avocat}} ({{partie.barreau}})
+{{/pour}}{% endverbatim %}</div>
+                    </div>
+
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fst-italic text-muted" style="font-size:0.7rem;">Comparaison (condition)</span>
+                            <i class="fa fa-plus flash-color" @click="insererSnippet('comparaison')" title="Insérer" style="cursor:pointer; font-size:0.65rem;"></i>
+                        </div>
+                        <div class="p-2 bg-light rounded font-monospace flash-color" style="font-size:0.7rem; white-space:pre;">{% verbatim %}{{#si client_type == "Entreprise"}}
+  La société {{client_intitule}}
+{{#sinon}}
+  {{client_civilite}} {{client_nom_complet}}
+{{/si}}{% endverbatim %}</div>
+                    </div>
+
+                    <div class="mb-2">
+                        <div class="fst-italic text-muted mb-1" style="font-size:0.7rem;">Variable avec filtre</div>
+                        <div class="p-2 bg-light rounded font-monospace flash-color" style="font-size:0.7rem;">{% verbatim %}{{client_nom | majuscule}}
+{{montant | monnaie}}
+{{date_complete | date_longue}}{% endverbatim %}</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -89,12 +154,29 @@
                         <button class="btn btn-outline-secondary" :class="modeAffichage === 'editeur' ? 'active' : ''" @click="modeAffichage = 'editeur'">
                             <i class="fa fa-edit me-1"></i>Éditeur
                         </button>
-                        <button class="btn btn-outline-secondary" :class="modeAffichage === 'apercu' ? 'active' : ''" @click="modeAffichage = 'apercu'; genererApercu()">
+                        <button class="btn btn-outline-secondary" :class="modeAffichage === 'apercu' ? 'active' : ''" @click="basculerApercu()">
                             <i class="fa fa-eye me-1"></i>Aperçu
+                            {% if acte.dossier %}<span class="badge bg-success ms-1" style="font-size:0.6rem;">réel</span>{% endif %}
                         </button>
                     </div>
                 </div>
             </div>
+            <!-- Barre markdown -->
+            <div class="d-flex flex-wrap gap-1 align-items-center px-3 py-2 border-bottom" style="background:#f8f9fa;" x-show="modeAffichage === 'editeur'">
+                <button type="button" class="btn btn-xs btn-outline-secondary fw-bold" @click="mdAction('gras')" title="Gras (**texte**)">G</button>
+                <button type="button" class="btn btn-xs btn-outline-secondary fst-italic" @click="mdAction('italique')" title="Italique (*texte*)">I</button>
+                <div class="vr mx-1"></div>
+                <button type="button" class="btn btn-xs btn-outline-secondary font-monospace" @click="mdAction('h1')" title="Titre (# ...)">H1</button>
+                <button type="button" class="btn btn-xs btn-outline-secondary font-monospace" @click="mdAction('h2')" title="Sous-titre (## ...)">H2</button>
+                <button type="button" class="btn btn-xs btn-outline-secondary font-monospace" @click="mdAction('h3')" title="Paragraphe (### ...)">H3</button>
+                <div class="vr mx-1"></div>
+                <button type="button" class="btn btn-xs btn-outline-secondary" @click="mdAction('puce')" title="Liste à puces (- item)"><i class="fa fa-list-ul"></i></button>
+                <button type="button" class="btn btn-xs btn-outline-secondary" @click="mdAction('num')" title="Liste numérotée (1. item)"><i class="fa fa-list-ol"></i></button>
+                <div class="vr mx-1"></div>
+                <button type="button" class="btn btn-xs btn-outline-secondary font-monospace" @click="mdAction('hr')" title="Séparateur (---)">—</button>
+                <span class="ms-auto text-muted font-monospace" style="font-size:0.62rem;"># Titre &nbsp;## Sous-titre &nbsp;### Paragraphe &nbsp;**gras** &nbsp;*italique*</span>
+            </div>
+
             <div class="card-body p-0">
                 <!-- Mode éditeur -->
                 <div x-show="modeAffichage === 'editeur'">
@@ -108,9 +190,13 @@
                         placeholder="Contenu de l'acte..."></textarea>
                 </div>
                 <!-- Mode aperçu -->
-                <div x-show="modeAffichage === 'apercu'" class="p-4" style="min-height:600px; font-family: 'Times New Roman', serif; font-size:1rem; line-height:1.8;">
-                    <div x-html="apercuHtml" class="acte-apercu"></div>
-                    <div x-show="apercuHtml === ''" class="text-center text-muted py-5">
+                <div x-show="modeAffichage === 'apercu'" x-cloak class="p-4" style="min-height:600px; font-family: 'Times New Roman', serif; font-size:1rem; line-height:1.8;">
+                    <div x-show="apercuChargement" class="text-center text-muted py-5">
+                        <i class="fa fa-spinner fa-spin fa-2x mb-2"></i>
+                        <p>Génération de l'aperçu...</p>
+                    </div>
+                    <div x-show="!apercuChargement && apercuHtml !== ''" x-html="apercuHtml" class="acte-apercu"></div>
+                    <div x-show="!apercuChargement && apercuHtml === ''" class="text-center text-muted py-5">
                         <i class="fa fa-eye fa-2x mb-2"></i>
                         <p>Aucun contenu à afficher</p>
                     </div>
@@ -118,7 +204,7 @@
             </div>
         </div>
 
-        <!-- Nom de l'acte (éditable) -->
+        <!-- Métadonnées -->
         <div class="card mt-3">
             <div class="card-header small fw-semibold">Métadonnées</div>
             <div class="card-body">
@@ -154,8 +240,6 @@
 }
 .acte-apercu strong { font-weight: bold; }
 .acte-apercu em { font-style: italic; }
-
-/* Mise en surbrillance des variables non résolues */
 .var-unresolved {
     background: #fff3cd;
     border: 1px solid #ffc107;
@@ -164,76 +248,156 @@
     font-family: monospace;
     font-size: 0.85em;
 }
+.bloc-conditionnel {
+    background: #e8f4fd;
+    border-left: 3px solid #3b82f6;
+    display: block;
+    padding: 2px 8px;
+    margin: 4px 0;
+    border-radius: 0 4px 4px 0;
+}
 </style>
 {% endblock %}
 
 {% block javascripts %}
 <script>
-function acteEditor(acteId) {
+function acteEditor(acteId, dossierId, statutInitial) {
     return {
         acteId,
+        dossierId,
         acteNom: '{{ acte.nom|escape('js') }}',
         contenu: '',
         apercuHtml: '',
+        apercuChargement: false,
         modeAffichage: 'editeur',
         toggleVariables: false,
         saving: false,
         compteurMots: 0,
+        statut: statutInitial || 'Brouillon',
+
+        statutConfig: {
+            'Brouillon':   { badge: 'secondary', transitions: ['En révision', 'Validé'] },
+            'En révision': { badge: 'warning',   transitions: ['Validé', 'Brouillon'] },
+            'Validé':      { badge: 'info',      transitions: ['Signé', 'En révision'] },
+            'Signé':       { badge: 'success',   transitions: ['Archivé'] },
+            'Archivé':     { badge: 'dark',      transitions: [] },
+        },
 
         groupesVariables: [
             {
                 titre: 'Cabinet',
                 variables: [
-                    { code: 'cabinet_nom', label: 'Nom du cabinet' },
-                    { code: 'cabinet_adresse', label: 'Adresse du cabinet' },
-                    { code: 'cabinet_telephone', label: 'Téléphone' },
-                    { code: 'cabinet_email', label: 'Email' },
-                    { code: 'cabinet_siret', label: 'SIRET' },
-                    { code: 'cabinet_toque', label: 'N° toque barreau' },
+                    { code: 'cabinet_nom',         label: 'Nom du cabinet' },
+                    { code: 'cabinet_adresse',      label: 'Adresse' },
+                    { code: 'cabinet_code_postal',  label: 'Code postal' },
+                    { code: 'cabinet_ville',        label: 'Ville' },
+                    { code: 'cabinet_telephone',    label: 'Téléphone' },
+                    { code: 'cabinet_email',        label: 'Email' },
+                    { code: 'cabinet_siret',        label: 'SIRET' },
+                    { code: 'avocat_nom',           label: 'Nom de l\'avocat' },
+                    { code: 'avocat_barreau',       label: 'Barreau (ex: Paris)' },
+                    { code: 'avocat_numero',        label: 'N° ordre du barreau' },
                 ]
             },
             {
                 titre: 'Client',
                 variables: [
-                    { code: 'client_nom', label: 'Nom complet du client' },
-                    { code: 'client_prenom', label: 'Prénom' },
-                    { code: 'client_nom_famille', label: 'Nom de famille' },
-                    { code: 'client_email', label: 'Email client' },
-                    { code: 'client_telephone', label: 'Téléphone client' },
-                    { code: 'client_adresse', label: 'Adresse client' },
-                    { code: 'client_ville', label: 'Ville client' },
-                    { code: 'client_code_postal', label: 'Code postal' },
+                    { code: 'client_civilite',      label: 'Civilité (M. / Mme)' },
+                    { code: 'client_nom_complet',   label: 'Nom complet' },
+                    { code: 'client_prenom',        label: 'Prénom' },
+                    { code: 'client_nom',           label: 'Nom de famille' },
+                    { code: 'client_type',          label: 'Type (Particulier / Entreprise...)' },
+                    { code: 'client_intitule',      label: 'Raison sociale (entreprise)' },
+                    { code: 'client_siret',         label: 'SIRET client' },
+                    { code: 'client_email',         label: 'Email client' },
+                    { code: 'client_telephone',     label: 'Téléphone client' },
+                    { code: 'client_adresse',       label: 'Adresse client' },
+                    { code: 'client_ville',         label: 'Ville client' },
+                    { code: 'client_code_postal',   label: 'Code postal client' },
                 ]
             },
             {
                 titre: 'Dossier',
                 variables: [
-                    { code: 'dossier_titre', label: 'Titre du dossier' },
-                    { code: 'dossier_reference', label: 'Référence dossier' },
-                    { code: 'dossier_matiere', label: 'Matière' },
-                    { code: 'dossier_date_ouverture', label: 'Date d\'ouverture' },
-                    { code: 'convention_type', label: 'Type d\'honoraires' },
-                    { code: 'convention_montant', label: 'Montant convention' },
+                    { code: 'dossier_titre',          label: 'Titre du dossier' },
+                    { code: 'dossier_matiere',        label: 'Matière juridique' },
+                    { code: 'dossier_date_ouverture', label: 'Date d\'ouverture (jj/mm/aaaa)' },
+                    { code: 'dossier_statut',         label: 'Statut du dossier' },
+                    { code: 'dossier_notes',          label: 'Notes du dossier' },
                 ]
             },
             {
-                titre: 'Partie adverse',
+                titre: 'Partie adverse (principale)',
                 variables: [
-                    { code: 'partie_adverse_nom', label: 'Nom partie adverse' },
-                    { code: 'partie_adverse_prenom', label: 'Prénom partie adverse' },
-                    { code: 'partie_adverse_avocat', label: 'Avocat partie adverse' },
+                    { code: 'partie_adverse_nom_complet', label: 'Nom complet' },
+                    { code: 'partie_adverse_nom',         label: 'Nom' },
+                    { code: 'partie_adverse_prenom',      label: 'Prénom' },
+                    { code: 'partie_adverse_entreprise',  label: 'Raison sociale' },
+                    { code: 'partie_adverse_avocat',      label: 'Avocat adverse' },
+                    { code: 'partie_adverse_barreau',     label: 'Barreau adverse' },
                 ]
             },
             {
                 titre: 'Dates',
                 variables: [
-                    { code: 'date_jour', label: 'Date du jour (dd/mm/yyyy)' },
-                    { code: 'date_jour_long', label: 'Date longue (ex: 20 mai 2024)' },
-                    { code: 'annee_courante', label: 'Année courante' },
-                    { code: 'ville_fait', label: 'Ville + date (ex: Paris, le...)' },
+                    { code: 'date_complete',  label: 'Date du jour (jj/mm/aaaa)' },
+                    { code: 'date_longue',    label: 'Date longue (ex: 22 mai 2026)' },
+                    { code: 'date_jour',      label: 'Jour (jj)' },
+                    { code: 'date_mois',      label: 'Mois (mm)' },
+                    { code: 'date_annee',     label: 'Année (aaaa)' },
                 ]
             }
         ],
+
+        varTag(code) { return '\x7B\x7B' + code + '\x7D\x7D'; },
+
+        mdAction(type) {
+            const ta = document.getElementById('acteTextarea');
+            if (!ta) return;
+            const start = ta.selectionStart;
+            const end   = ta.selectionEnd;
+            const val   = this.contenu;
+            let newVal, ns, ne;
+
+            if (type === 'gras' || type === 'italique') {
+                const m   = type === 'gras' ? '**' : '*';
+                const sel = val.substring(start, end);
+                if (sel) {
+                    newVal = val.substring(0, start) + m + sel + m + val.substring(end);
+                    ns = start + m.length; ne = end + m.length;
+                } else {
+                    newVal = val.substring(0, start) + m + m + val.substring(end);
+                    ns = ne = start + m.length;
+                }
+            } else if (['h1', 'h2', 'h3', 'puce', 'num'].includes(type)) {
+                const prefixes = { h1: '# ', h2: '## ', h3: '### ', puce: '- ', num: '1. ' };
+                const prefix   = prefixes[type];
+                const lineStart = val.lastIndexOf('\n', start - 1) + 1;
+                const lineEnd   = val.indexOf('\n', start);
+                const lineEnd2  = lineEnd === -1 ? val.length : lineEnd;
+                const line      = val.substring(lineStart, lineEnd2);
+                const clean     = line.replace(/^(#{1,3} |- |\d+\. )/, '');
+                newVal = val.substring(0, lineStart) + prefix + clean + val.substring(lineEnd2);
+                ns = ne = lineStart + prefix.length;
+            } else if (type === 'hr') {
+                const ins = '\n---\n';
+                newVal = val.substring(0, start) + ins + val.substring(end);
+                ns = ne = start + ins.length;
+            }
+
+            if (newVal !== undefined) {
+                this.contenu = newVal;
+                this.onContenuChange();
+                this.$nextTick(() => { ta.focus(); ta.setSelectionRange(ns, ne); });
+            }
+        },
+
+        snippets: {% verbatim %}{
+            si:          "{{#si variable}}\n  contenu si vrai\n{{/si}}",
+            sinon:       "{{#si variable}}\n  contenu si vrai\n{{#sinon}}\n  contenu si faux\n{{/si}}",
+            pour:        "{{#pour partie in parties_adverses}}\n  {{partie.nom_complet}} — Me {{partie.avocat}} ({{partie.barreau}})\n{{/pour}}",
+            comparaison: "{{#si client_type == \"Entreprise\"}}\n  La société {{client_intitule}}\n{{#sinon}}\n  {{client_civilite}} {{client_nom_complet}}\n{{/si}}",
+        }{% endverbatim %},
 
         async init() {
             const data = await api.get(`/api/actes-generes/${this.acteId}`);
@@ -245,8 +409,7 @@ function acteEditor(acteId) {
         },
 
         onContenuChange() {
-            // Compter les mots
-            const texte = this.contenu.replace(/\{\{.*?\}\}/g, '').trim();
+            const texte = this.contenu.replace(/\{\{.*?\}\}/gs, '').trim();
             this.compteurMots = texte ? texte.split(/\s+/).filter(Boolean).length : 0;
         },
 
@@ -254,38 +417,84 @@ function acteEditor(acteId) {
             const textarea = document.getElementById('acteTextarea');
             if (!textarea) return;
             const start = textarea.selectionStart;
-            const end = textarea.selectionEnd;
-            const insertion = '{{' + code + '}}';
-            this.contenu = this.contenu.substring(0, start) + insertion + this.contenu.substring(end);
+            const end   = textarea.selectionEnd;
+            const ins   = '\x7B\x7B' + code + '\x7D\x7D';
+            this.contenu = this.contenu.substring(0, start) + ins + this.contenu.substring(end);
             this.$nextTick(() => {
                 textarea.focus();
-                textarea.setSelectionRange(start + insertion.length, start + insertion.length);
+                textarea.setSelectionRange(start + ins.length, start + ins.length);
             });
             this.onContenuChange();
         },
 
-        insererBloc() {
+        insererSnippet(type) {
             const textarea = document.getElementById('acteTextarea');
-            if (!textarea) return;
+            const ins = this.snippets[type] || '';
+            if (!ins) return;
+            if (!textarea) { this.contenu += ins; return; }
             const start = textarea.selectionStart;
-            const end = textarea.selectionEnd;
-            const selectionText = this.contenu.substring(start, end) || 'contenu conditionnel';
-            {% verbatim %}const bloc = `{{#si variable}}\n${selectionText}\n{{/si}}`;{% endverbatim %}
-            this.contenu = this.contenu.substring(0, start) + bloc + this.contenu.substring(end);
+            const end   = textarea.selectionEnd;
+            this.contenu = this.contenu.substring(0, start) + ins + this.contenu.substring(end);
+            this.$nextTick(() => {
+                textarea.focus();
+                textarea.setSelectionRange(start + ins.length, start + ins.length);
+            });
             this.onContenuChange();
         },
 
-        {% verbatim %}genererApercu() {
+        async basculerApercu() {
+            this.modeAffichage = 'apercu';
+            await this.genererApercu();
+        },
+
+        async genererApercu() {
+            this.apercuChargement = true;
+            this.apercuHtml = '';
+
+            if (this.dossierId) {
+                // Résolution réelle côté serveur avec les données du dossier
+                const resp = await api.post('/api/actes-generes/preview', {
+                    contenu: this.contenu,
+                    dossierId: this.dossierId
+                });
+                if (resp.success) {
+                    this.apercuHtml = resp.contenu;
+                    this.apercuChargement = false;
+                    return;
+                }
+            }
+
+            // Aperçu client-side : met en surbrillance les variables non résolues
+            {% verbatim %}
             let html = this.contenu
-                .replace(/\{\{#si\s+[\w.]+\}\}([\s\S]*?)\{\{\/si\}\}/g, (match, inner) => {
-                    return `<span style="background:#e8f4fd; border-left:3px solid #3b82f6; display:block; padding:2px 8px; margin:4px 0;">${inner.trim()}</span>`;
+                .replace(/\{\{#pour\s+\w+\s+in\s+[\w.]+\}\}([\s\S]*?)\{\{\/pour\}\}/g, (_, inner) =>
+                    `<span class="bloc-conditionnel" style="border-color:#10b981;">🔁 boucle : ${inner.trim()}</span>`)
+                .replace(/\{\{#si\s+([^}]+?)\}\}([\s\S]*?)(?:\{\{#sinon\}\}([\s\S]*?))?\{\{\/si\}\}/g, (_, cond, vrai, faux) => {
+                    const faussePartie = faux ? `<br><em style="color:#6b7280;">sinon : ${faux.trim()}</em>` : '';
+                    return `<span class="bloc-conditionnel">si ${cond.trim()} : ${vrai.trim()}${faussePartie}</span>`;
                 })
-                .replace(/\{\{([\w.]+)\}\}/g, (match, varName) => {
-                    return `<span class="var-unresolved">${match}</span>`;
-                })
+                .replace(/\{\{([\w.|]+)\}\}/g, match => `<span class="var-unresolved">${match}</span>`)
+                // Markdown basique
+                .replace(/^# (.+)$/gm,  '<h2>$1</h2>')
+                .replace(/^## (.+)$/gm, '<h3>$1</h3>')
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.+?)\*/g,    '<em>$1</em>')
+                .replace(/^---+$/gm, '<hr>')
                 .replace(/\n/g, '<br>');
             this.apercuHtml = html;
-        },{% endverbatim %}
+            {% endverbatim %}
+            this.apercuChargement = false;
+        },
+
+        async changerStatut(nouveau) {
+            const data = await api.patch(`/api/actes-generes/${this.acteId}/statut`, { statut: nouveau });
+            if (data.success) {
+                this.statut = data.data.statut;
+                notify(`Statut : ${this.statut}`);
+            } else {
+                notify(data.error || 'Erreur', 'error');
+            }
+        },
 
         async sauvegarder() {
             this.saving = true;

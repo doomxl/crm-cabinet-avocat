@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Enum\StatutActeEnum;
 use App\Repository\ActeGenereRepository;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -35,6 +36,9 @@ class ActeGenere
     #[ORM\Column(name: 'date_generation', type: 'datetime_immutable')]
     private \DateTimeImmutable $dateGeneration;
 
+    #[ORM\Column(name: 'statut', type: 'string', enumType: StatutActeEnum::class)]
+    private StatutActeEnum $statut = StatutActeEnum::Brouillon;
+
     public function __construct()
     {
         $this->dateGeneration = new \DateTimeImmutable();
@@ -53,6 +57,8 @@ class ActeGenere
     public function setContenu(?string $contenu): static { $this->contenu = $contenu; return $this; }
     public function getDateGeneration(): \DateTimeImmutable { return $this->dateGeneration; }
     public function setDateGeneration(\DateTimeImmutable $dateGeneration): static { $this->dateGeneration = $dateGeneration; return $this; }
+    public function getStatut(): StatutActeEnum { return $this->statut; }
+    public function setStatut(StatutActeEnum $statut): static { $this->statut = $statut; return $this; }
 
     public function toArray(): array
     {
@@ -67,6 +73,8 @@ class ActeGenere
             'nom' => $this->nom,
             'contenu' => $this->contenu,
             'dateGeneration' => $this->dateGeneration->format('Y-m-d H:i:s'),
+            'statut' => $this->statut->value,
+            'statutBadge' => $this->statut->badgeClass(),
         ];
     }
 }

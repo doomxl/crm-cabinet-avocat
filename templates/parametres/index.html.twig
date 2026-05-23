@@ -1,0 +1,170 @@
+{% extends 'base.html.twig' %}
+{% block title %}Paramètres - CRM Cabinet{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ path('dashboard_index') }}">Accueil</a></li>
+<li class="breadcrumb-item active">Paramètres</li>
+{% endblock %}
+
+{% block content %}
+<div x-data="parametresPage()" x-init="init()">
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0 fw-bold"><i class="fa fa-gear text-primary me-2"></i>Paramètres du cabinet</h4>
+    <button class="btn btn-success" @click="sauvegarder()" :disabled="saving">
+        <i class="fa fa-save me-1"></i>
+        <span x-text="saving ? 'Enregistrement...' : 'Enregistrer'"></span>
+    </button>
+</div>
+
+<div class="row g-4">
+
+    <!-- Colonne gauche -->
+    <div class="col-lg-6">
+
+        <!-- Informations du cabinet -->
+        <div class="card mb-4">
+            <div class="card-header fw-semibold"><i class="fa fa-building me-2 text-primary"></i>Informations du cabinet</div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label small fw-semibold">Nom du cabinet <span class="text-danger">*</span></label>
+                        <input class="form-control" x-model="form.nom" placeholder="Cabinet Maître Dupont">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label small fw-semibold">Adresse</label>
+                        <input class="form-control" x-model="form.adresse" placeholder="12 rue de la Justice">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small fw-semibold">Code postal</label>
+                        <input class="form-control" x-model="form.codePostal" placeholder="75001">
+                    </div>
+                    <div class="col-md-9">
+                        <label class="form-label small fw-semibold">Ville</label>
+                        <input class="form-control" x-model="form.ville" placeholder="Paris">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Téléphone</label>
+                        <input class="form-control" x-model="form.telephone" placeholder="01 23 45 67 89">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Email</label>
+                        <input type="email" class="form-control" x-model="form.email" placeholder="contact@cabinet.fr">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">SIRET</label>
+                        <input class="form-control" x-model="form.siret" placeholder="xxx xxx xxx xxxxx">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Taux horaire par défaut (€)</label>
+                        <input type="number" class="form-control" x-model="form.tauxHoraireDefaut" min="0" step="5" placeholder="150">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Colonne droite -->
+    <div class="col-lg-6">
+
+        <!-- Informations de l'avocat -->
+        <div class="card mb-4">
+            <div class="card-header fw-semibold"><i class="fa fa-user-tie me-2 text-primary"></i>Avocat titulaire</div>
+            <div class="card-body">
+                <p class="small text-muted mb-3">Ces informations sont utilisées dans la génération des actes (<code>{{avocat_nom}}</code>, <code>{{avocat_barreau}}</code>, <code>{{avocat_numero}}</code>).</p>
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label small fw-semibold">Nom complet de l'avocat</label>
+                        <input class="form-control" x-model="form.avocatNom" placeholder="Maître Jean Dupont">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Barreau</label>
+                        <input class="form-control" x-model="form.avocatBarreau" placeholder="Paris">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">N° de l'ordre</label>
+                        <input class="form-control" x-model="form.avocatNumero" placeholder="P12345">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Aperçu actes -->
+        <div class="card mb-4">
+            <div class="card-header fw-semibold"><i class="fa fa-eye me-2 text-muted"></i>Aperçu signature dans les actes</div>
+            <div class="card-body">
+                <div class="border rounded p-3 bg-light font-monospace" style="font-size:0.85rem; white-space:pre-wrap;" x-text="apercuSignature"></div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+function parametresPage() {
+    return {
+        saving: false,
+        form: {
+            nom: '',
+            adresse: '',
+            codePostal: '',
+            ville: '',
+            telephone: '',
+            email: '',
+            siret: '',
+            tauxHoraireDefaut: 150,
+            avocatNom: '',
+            avocatBarreau: '',
+            avocatNumero: '',
+        },
+
+        get apercuSignature() {
+            const nom     = this.form.avocatNom    || '[Nom de l\'avocat]';
+            const barreau = this.form.avocatBarreau || '[Barreau]';
+            const numero  = this.form.avocatNumero  || '[N° ordre]';
+            const ville   = this.form.ville         || '[Ville]';
+            return `Fait à ${ville}, le {{date_longue}}\n\n${nom}\nAvocat au Barreau de ${barreau}\nN° ordre : ${numero}`;
+        },
+
+        async init() {
+            const data = await api.get('/api/config');
+            if (data.success) {
+                const d = data.data;
+                this.form.nom              = d.nom              ?? '';
+                this.form.adresse          = d.adresse          ?? '';
+                this.form.codePostal       = d.codePostal       ?? '';
+                this.form.ville            = d.ville            ?? '';
+                this.form.telephone        = d.telephone        ?? '';
+                this.form.email            = d.email            ?? '';
+                this.form.siret            = d.siret            ?? '';
+                this.form.tauxHoraireDefaut= d.tauxHoraireDefaut ?? 150;
+                this.form.avocatNom        = d.avocatNom        ?? '';
+                this.form.avocatBarreau    = d.avocatBarreau    ?? '';
+                this.form.avocatNumero     = d.avocatNumero     ?? '';
+            }
+        },
+
+        async sauvegarder() {
+            if (!this.form.nom.trim()) { notify('Le nom du cabinet est obligatoire', 'error'); return; }
+            this.saving = true;
+            try {
+                const data = await api.put('/api/config', this.form);
+                if (data.success) {
+                    notify('Paramètres enregistrés');
+                    document.getElementById('cabinet-name').textContent = this.form.nom;
+                } else {
+                    notify(data.error || 'Erreur lors de la sauvegarde', 'error');
+                }
+            } catch(e) {
+                notify('Erreur réseau', 'error');
+            }
+            this.saving = false;
+        }
+    };
+}
+</script>
+{% endblock %}

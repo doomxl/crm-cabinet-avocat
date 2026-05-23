@@ -5,10 +5,10 @@ namespace App\Service;
 use App\Entity\ActeGenere;
 use App\Entity\CabinetConfig;
 use App\Entity\Facture;
+use PhpOffice\PhpWord\Element\Section;
 use PhpOffice\PhpWord\IOFactory;
 use PhpOffice\PhpWord\PhpWord;
 use PhpOffice\PhpWord\SimpleType\Jc;
-use PhpOffice\PhpWord\Style\Font;
 
 class WordService
 {
@@ -89,6 +89,73 @@ class WordService
         return ob_get_clean();
     }
 
+    private function ajouterMarkdown(Section $section, string $contenu): void
+    {
+        $lignes = explode("\n", $contenu);
+        $numOl  = 0;
+
+        foreach ($lignes as $ligne) {
+            $trim = rtrim($ligne);
+
+            if ($trim === '') {
+                $section->addTextBreak(1);
+                $numOl = 0;
+                continue;
+            }
+
+            if (preg_match('/^-{3,}$/', $trim)) {
+                $section->addText(str_repeat('─', 55), ['name' => 'Calibri', 'size' => 8, 'color' => 'AAAAAA']);
+                $numOl = 0;
+                continue;
+            }
+
+            if (preg_match('/^(#{1,3})\s+(.+)$/', $trim, $m)) {
+                $sizes = [1 => 16, 2 => 13, 3 => 12];
+                $size  = $sizes[strlen($m[1])] ?? 12;
+                $this->ajouterLigneMarkdown($section, $m[2], ['name' => 'Calibri', 'size' => $size, 'bold' => true]);
+                $numOl = 0;
+                continue;
+            }
+
+            if (preg_match('/^[-*]\s+(.+)$/', $trim, $m)) {
+                $this->ajouterLigneMarkdown($section, '• ' . $m[1], ['name' => 'Calibri', 'size' => 11]);
+                $numOl = 0;
+                continue;
+            }
+
+            if (preg_match('/^\d+\.\s+(.+)$/', $trim, $m)) {
+                $numOl++;
+                $this->ajouterLigneMarkdown($section, $numOl . '. ' . $m[1], ['name' => 'Calibri', 'size' => 11]);
+                continue;
+            }
+
+            $numOl = 0;
+            $this->ajouterLigneMarkdown($section, $trim, ['name' => 'Calibri', 'size' => 11]);
+        }
+    }
+
+    private function ajouterLigneMarkdown(Section $section, string $texte, array $styleBase): void
+    {
+        $parts = preg_split('/(\*\*[^*]+\*\*|\*[^*]+\*)/', $texte, -1, PREG_SPLIT_DELIM_CAPTURE);
+
+        if (count($parts) <= 1) {
+            $section->addText($texte, $styleBase);
+            return;
+        }
+
+        $run = $section->addTextRun();
+        foreach ($parts as $part) {
+            if ($part === '') continue;
+            if (preg_match('/^\*\*(.+)\*\*$/', $part, $m)) {
+                $run->addText($m[1], array_merge($styleBase, ['bold' => true]));
+            } elseif (preg_match('/^\*(.+)\*$/', $part, $m)) {
+                $run->addText($m[1], array_merge($styleBase, ['italic' => true]));
+            } else {
+                $run->addText($part, $styleBase);
+            }
+        }
+    }
+
     public function genererActeDocx(ActeGenere $acte, CabinetConfig $config): string
     {
         $phpWord = new PhpWord();
@@ -109,12 +176,8 @@ class WordService
         $section->addText('Généré le ' . $acte->getDateGeneration()->format('d/m/Y'), 'normal', 'centre');
         $section->addTextBreak(2);
 
-        // Contenu de l'acte
         if ($acte->getContenu()) {
-            $lignes = explode("\n", $acte->getContenu());
-            foreach ($lignes as $ligne) {
-                $section->addText(trim($ligne), 'normal');
-            }
+            $this->ajouterMarkdown($section, $acte->getContenu());
         }
 
         $section->addTextBreak(4);

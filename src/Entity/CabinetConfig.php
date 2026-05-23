@@ -35,6 +35,15 @@ class CabinetConfig
     #[ORM\Column(name: 'siret', type: 'string', length: 20, nullable: true)]
     private ?string $siret = null;
 
+    #[ORM\Column(name: 'avocat_nom', type: 'string', length: 255, nullable: true)]
+    private ?string $avocatNom = null;
+
+    #[ORM\Column(name: 'avocat_barreau', type: 'string', length: 100, nullable: true)]
+    private ?string $avocatBarreau = null;
+
+    #[ORM\Column(name: 'avocat_numero', type: 'string', length: 50, nullable: true)]
+    private ?string $avocatNumero = null;
+
     #[ORM\Column(name: 'couleurs_matiere', type: 'json')]
     private array $couleursMatiere = [];
 
@@ -81,6 +90,12 @@ class CabinetConfig
     public function setEmail(?string $email): static { $this->email = $email; return $this; }
     public function getSiret(): ?string { return $this->siret; }
     public function setSiret(?string $siret): static { $this->siret = $siret; return $this; }
+    public function getAvocatNom(): ?string { return $this->avocatNom; }
+    public function setAvocatNom(?string $avocatNom): static { $this->avocatNom = $avocatNom; return $this; }
+    public function getAvocatBarreau(): ?string { return $this->avocatBarreau; }
+    public function setAvocatBarreau(?string $avocatBarreau): static { $this->avocatBarreau = $avocatBarreau; return $this; }
+    public function getAvocatNumero(): ?string { return $this->avocatNumero; }
+    public function setAvocatNumero(?string $avocatNumero): static { $this->avocatNumero = $avocatNumero; return $this; }
     public function getCouleursMatiere(): array { return $this->couleursMatiere; }
     public function setCouleursMatiere(array $couleursMatiere): static { $this->couleursMatiere = $couleursMatiere; return $this; }
     public function getTauxHoraireDefaut(): string { return $this->tauxHoraireDefaut; }
@@ -98,6 +113,9 @@ class CabinetConfig
             'telephone' => $this->telephone,
             'email' => $this->email,
             'siret' => $this->siret,
+            'avocatNom' => $this->avocatNom,
+            'avocatBarreau' => $this->avocatBarreau,
+            'avocatNumero' => $this->avocatNumero,
             'couleursMatiere' => $this->couleursMatiere,
             'tauxHoraireDefaut' => (float)$this->tauxHoraireDefaut,
             'updatedAt' => $this->updatedAt->format('Y-m-d H:i:s'),
