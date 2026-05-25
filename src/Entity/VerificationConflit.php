@@ -25,6 +25,9 @@ class VerificationConflit
     #[ORM\Column(name: 'partie_adverse_nom', type: 'string', length: 255, nullable: true)]
     private ?string $partieAdverseNom = null;
 
+    #[ORM\Column(name: 'contexte', type: 'string', length: 255, nullable: true)]
+    private ?string $contexte = null;
+
     #[ORM\Column(name: 'resultat', type: 'text', nullable: true)]
     private ?string $resultat = null;
 
@@ -43,6 +46,8 @@ class VerificationConflit
     public function setClient(?Client $client): static { $this->client = $client; return $this; }
     public function getPartieAdverseNom(): ?string { return $this->partieAdverseNom; }
     public function setPartieAdverseNom(?string $partieAdverseNom): static { $this->partieAdverseNom = $partieAdverseNom; return $this; }
+    public function getContexte(): ?string { return $this->contexte; }
+    public function setContexte(?string $contexte): static { $this->contexte = $contexte; return $this; }
     public function getResultat(): ?string { return $this->resultat; }
     public function setResultat(?string $resultat): static { $this->resultat = $resultat; return $this; }
     public function getDateVerification(): \DateTimeImmutable { return $this->dateVerification; }
@@ -50,14 +55,19 @@ class VerificationConflit
 
     public function toArray(): array
     {
+        $parsed = $this->resultat ? (json_decode($this->resultat, true) ?? []) : [];
+        $aConflits   = $parsed['aConflits'] ?? false;
+        $conflits    = $parsed['conflits'] ?? [];
+
         return [
-            'id' => $this->id,
-            'dossierId' => $this->dossier?->getId(),
-            'dossierTitre' => $this->dossier?->getTitre(),
-            'clientId' => $this->client?->getId(),
-            'clientNom' => $this->client?->getNomComplet(),
-            'partieAdverseNom' => $this->partieAdverseNom,
-            'resultat' => $this->resultat,
+            'id'               => $this->id,
+            'nomVerifie'       => $this->partieAdverseNom,
+            'contexte'         => $this->contexte,
+            'clientId'         => $this->client?->getId(),
+            'clientNom'        => $this->client?->getNomComplet(),
+            'aConflits'        => $aConflits,
+            'nombreConflits'   => count($conflits),
+            'conflitsDetail'   => $conflits,
             'dateVerification' => $this->dateVerification->format('Y-m-d H:i:s'),
         ];
     }

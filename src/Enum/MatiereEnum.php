@@ -21,14 +21,14 @@ enum MatiereEnum: string
     public function couleur(): string
     {
         return match($this) {
-            self::Droit_familial => '#EC4899',
-            self::Droit_penal => '#EF4444',
-            self::Droit_des_affaires => '#1E40AF',
-            self::Droit_social => '#F97316',
-            self::Droit_immobilier => '#059669',
-            self::Droit_administratif => '#7C3AED',
-            self::Droit_international => '#06B6D4',
-            self::Autres => '#6B7280',
+            self::Droit_familial      => '#F472B6',
+            self::Droit_penal         => '#F87171',
+            self::Droit_des_affaires  => '#60A5FA',
+            self::Droit_social        => '#FDBA74',
+            self::Droit_immobilier    => '#34D399',
+            self::Droit_administratif => '#A78BFA',
+            self::Droit_international => '#22D3EE',
+            self::Autres              => '#9CA3AF',
         };
     }
 

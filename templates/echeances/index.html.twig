@@ -61,7 +61,7 @@
                         <td class="small" x-text="new Date(e.date).toLocaleDateString('fr-FR')"></td>
                         <td class="small text-muted" x-text="e.description || '—'"></td>
                         <td>
-                            <select class="form-select form-select-sm" style="width:auto" @change="changeStatut(e.id, $event.target.value)">
+                            <select class="form-select form-select-sm w-auto" @change="changeStatut(e.id, $event.target.value)">
                                 {% for statut in statuts %}
                                 <option value="{{ statut.value }}" x-bind:selected="e.statut === '{{ statut.value }}'">{{ statut.label() }}</option>
                                 {% endfor %}

@@ -162,7 +162,7 @@
                 </div>
             </div>
             <!-- Barre markdown -->
-            <div class="d-flex flex-wrap gap-1 align-items-center px-3 py-2 border-bottom" style="background:#f8f9fa;" x-show="modeAffichage === 'editeur'">
+            <div class="d-flex flex-wrap gap-1 align-items-center px-3 py-2 border-bottom bg-light" x-show="modeAffichage === 'editeur'">
                 <button type="button" class="btn btn-xs btn-outline-secondary fw-bold" @click="mdAction('gras')" title="Gras (**texte**)">G</button>
                 <button type="button" class="btn btn-xs btn-outline-secondary fst-italic" @click="mdAction('italique')" title="Italique (*texte*)">I</button>
                 <div class="vr mx-1"></div>
@@ -182,15 +182,14 @@
                 <div x-show="modeAffichage === 'editeur'">
                     <textarea
                         id="acteTextarea"
-                        class="form-control border-0 font-monospace"
+                        class="form-control border-0 font-monospace modele-textarea rounded-0"
                         x-model="contenu"
                         @input="onContenuChange()"
                         rows="30"
-                        style="border-radius:0; resize:vertical; font-size:0.85rem; line-height:1.6;"
                         placeholder="Contenu de l'acte..."></textarea>
                 </div>
                 <!-- Mode aperçu -->
-                <div x-show="modeAffichage === 'apercu'" x-cloak class="p-4" style="min-height:600px; font-family: 'Times New Roman', serif; font-size:1rem; line-height:1.8;">
+                <div x-show="modeAffichage === 'apercu'" x-cloak class="p-4 apercu-container">
                     <div x-show="apercuChargement" class="text-center text-muted py-5">
                         <i class="fa fa-spinner fa-spin fa-2x mb-2"></i>
                         <p>Génération de l'aperçu...</p>
@@ -231,32 +230,6 @@
     </div>
 </div>
 </div>
-{% endblock %}
-
-{% block stylesheets %}
-<style>
-.acte-apercu {
-    white-space: pre-wrap;
-}
-.acte-apercu strong { font-weight: bold; }
-.acte-apercu em { font-style: italic; }
-.var-unresolved {
-    background: #fff3cd;
-    border: 1px solid #ffc107;
-    border-radius: 3px;
-    padding: 0 3px;
-    font-family: monospace;
-    font-size: 0.85em;
-}
-.bloc-conditionnel {
-    background: #e8f4fd;
-    border-left: 3px solid #3b82f6;
-    display: block;
-    padding: 2px 8px;
-    margin: 4px 0;
-    border-radius: 0 4px 4px 0;
-}
-</style>
 {% endblock %}
 
 {% block javascripts %}

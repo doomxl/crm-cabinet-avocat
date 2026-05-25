@@ -1,139 +1,221 @@
-/* CRM Cabinet d'Avocat - Styles personnalisés */
+/* ============================================================
+   CRM Cabinet d'Avocat — Styles personnalisés
+   Chargé en premier : surcharge Bootstrap/_reboot ensuite
+   ============================================================ */
 
-/* Override Bootstrap avec la charte graphique du cabinet */
+/* ============================================================
+   VARIABLES GLOBALES
+   ============================================================ */
 :root {
-    --crm-primary: #1a2942;
-    --crm-primary-light: #243452;
-    --crm-accent: #3b82f6;
-    --crm-sidebar-width: 240px;
-    --crm-topbar-height: 56px;
+    /* Palette principale */
+    --navy:          #1a2942;
+    --navy-dark:     #111e30;
+    --navy-light:    #243450;
+    --accent:        #3b82f6;
+    --accent-hover:  #2563eb;
+    --orange:        #da870c;
+
+    /* Neutres */
+    --white:         #ffffff;
+    --bg-page:       #e8eaee;
+    --bg-light:      #f8f9fa;
+    --bg-input:      #f8fafc;
+    --bg-search:     #f0f2f5;
+    --border:        #e5e7eb;
+    --text-muted:    #6b7280;
+    --text-dark:     #212529;
+
+    /* Urgences */
+    --danger:        #dc2626;
+    --warning-dark:  #ea580c;
+    --warning:       #d97706;
+    --success:       #16a34a;
+
+    /* Mise en page */
+    --sidebar-width: 210px;
+    --topbar-height: 56px;
 }
 
-
-a {
-    color: #1a2942;
-    text-decoration: none;
+/* ============================================================
+   BASE
+   ============================================================ */
+body {
+    background-color: var(--bg-page);
+    font-family: 'Segoe UI', sans-serif;
 }
 
-a:hover {
-    color: #da870c;;
-    text-decoration: none;
-}
+a { color: var(--navy); text-decoration: none; }
+a:hover { color: var(--orange); text-decoration: none; }
+
+[x-cloak] { display: none !important; }
+
+th { font-size: 0.8rem; font-weight: 500; }
 
 /* ============================================================
    SIDEBAR
    ============================================================ */
-.sidebar {
-    background: var(--crm-primary);
-    width: var(--crm-sidebar-width);
+#sidebar {
+    width: var(--sidebar-width);
     min-height: 100vh;
+    background: var(--navy);
     position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 1000;
+    top: 0; left: 0; bottom: 0;
     overflow-y: auto;
-    display: flex;
-    flex-direction: column;
+    z-index: 1000;
+    transition: width 0.3s;
     box-shadow: 2px 0 8px rgba(0,0,0,0.15);
-    transition: width 0.3s ease;
 }
-
-.sidebar-brand {
-    padding: 0 16px;
-    height: var(--crm-topbar-height);
-    display: flex;
-    align-items: center;
+#sidebar .brand {
+    padding: 20px 16px;
+    color: var(--white);
+    font-size: 1.1rem;
+    font-weight: 700;
     border-bottom: 1px solid rgba(255,255,255,0.1);
-    flex-shrink: 0;
+    text-decoration: none;
+    display: block;
 }
-
-.sidebar-brand-text {
-    color: white;
-    font-size: 0.95rem;
-    font-weight: 700;
-    line-height: 1.2;
-    letter-spacing: 0.02em;
+#sidebar .brand small {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 400;
+    color: rgba(255,255,255,0.5);
 }
-
-.sidebar-nav {
-    flex: 1;
-    padding: 8px 0;
-}
-
-.nav-section-title {
-    color: rgba(255,255,255,0.35);
-    font-size: 0.625rem;
-    font-weight: 700;
+#sidebar .nav-section {
+    padding: 12px 16px 4px;
+    font-size: 0.68rem;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
-    padding: 12px 20px 4px;
+    letter-spacing: 0.08em;
+    color: var(--orange);
 }
-
-.sidebar-link {
+#sidebar .nav-link {
+    color: rgba(255,255,255,0.7);
+    padding: 3px 16px;
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 10px 20px;
-    color: rgba(255,255,255,0.72);
+    font-size: 0.87rem;
     text-decoration: none;
-    font-size: 0.82rem;
-    font-weight: 500;
-    transition: all 0.15s ease;
-    border-left: 3px solid transparent;
+    border-radius: 6px;
+    margin: 1px 8px;
+    transition: all 0.2s;
 }
-
-.sidebar-link:hover {
-    color: white;
-    background: rgba(255,255,255,0.08);
-    border-left-color: rgba(255,255,255,0.3);
+#sidebar .nav-link:hover,
+#sidebar .nav-link.active {
+    color: var(--white);
+    background: var(--navy-light);
 }
-
-.sidebar-link.active {
-    color: white;
-    background: rgba(59,130,246,0.2);
-    border-left-color: var(--crm-accent);
-}
-
-.sidebar-link i {
-    width: 18px;
-    text-align: center;
-    font-size: 0.85rem;
-    flex-shrink: 0;
-}
+#sidebar .nav-link .fa { width: 18px; text-align: center; font-size: 0.9rem; }
 
 /* ============================================================
    TOPBAR
    ============================================================ */
-.topbar {
-    height: var(--crm-topbar-height);
-    background: white;
-    border-bottom: 1px solid #e5e7eb;
+#topbar {
     position: fixed;
-    top: 0;
-    right: 0;
-    left: var(--crm-sidebar-width);
-    z-index: 999;
+    top: 0; left: var(--sidebar-width); right: 0;
+    height: var(--topbar-height);
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
     display: flex;
     align-items: center;
     padding: 0 24px;
-    gap: 16px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    z-index: 999;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+#topbar .cabinet-name { font-weight: 600; color: var(--navy); font-size: 0.95rem; }
+#topbar .breadcrumb { font-size: 0.8rem; color: var(--text-muted); margin: 0; }
+#topbar .search-bar-wrapper { max-width: 480px; margin: 0 auto; }
+#topbar input.form-control { background: var(--bg-input); border-color: var(--border); }
+#topbar input.form-control:focus {
+    outline: 1px solid #93c5fd;
+    outline-offset: 0;
+    box-shadow: none;
+    border-color: #93c5fd;
 }
 
 /* ============================================================
    CONTENU PRINCIPAL
    ============================================================ */
-.main-content {
-    margin-left: var(--crm-sidebar-width);
-    margin-top: var(--crm-topbar-height);
+#main-content {
+    margin-left: var(--sidebar-width);
+    margin-top: var(--topbar-height);
     padding: 24px;
-    min-height: calc(100vh - var(--crm-topbar-height));
-    background: #f8f9fa;
+    min-height: calc(100vh - var(--topbar-height));
 }
 
 /* ============================================================
-   UTILITAIRES
+   CARDS
    ============================================================ */
+.card { border: none; box-shadow: 0 1px 4px rgba(0,0,0,0.08); border-radius: 10px; }
+.card-header {
+    background: var(--bg-light);
+    border-bottom: 1px solid var(--border);
+    font-weight: 500;
+    padding: 10px;
+}
+
+/* KPI Cards */
+.kpi-card {
+    border-radius: 12px;
+    background-color: var(--white);
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    padding: 10px;
+    color: var(--text-dark);
+}
+.kpi-card .kpi-value { font-size: 0.95rem; font-weight: 600; line-height: 1; }
+.kpi-card .kpi-label { font-size: 0.8rem; opacity: 0.85; margin-top: 4px; }
+.kpi-card .kpi-icon { text-align: right; font-size: 1rem; color: var(--orange); }
+
+/* ============================================================
+   RECHERCHE GLOBALE
+   ============================================================ */
+#search-panel {
+    position: fixed;
+    top: var(--topbar-height);
+    left: var(--sidebar-width);
+    right: 0;
+    z-index: 999;
+    padding: 12px 24px 0;
+}
+#search-panel .card {
+    box-shadow: 0 8px 24px rgba(0,0,0,0.13);
+    border: none;
+    border-radius: 10px;
+}
+.search-backdrop {
+    position: fixed;
+    top: var(--topbar-height);
+    left: var(--sidebar-width);
+    right: 0;
+    bottom: 0;
+    z-index: 997;
+    background: rgba(15,23,42,0.35);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+}
+.search-results-body { background: var(--bg-search); border-radius: 0 0 10px 10px; }
+.search-table-container { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.search-table { font-size: 0.82rem; }
+.search-table-head { background: var(--bg-light); }
+.search-open-icon { font-size: 0.75rem; }
+
+/* ============================================================
+   COMPOSANTS
+   ============================================================ */
+
+/* Badge alerte sidebar */
+.nav-badge {
+    background: var(--danger);
+    color: var(--white);
+    font-size: 0.65rem;
+    border-radius: 10px;
+    padding: 1px 6px;
+    margin-left: auto;
+}
+
+/* Couleur accentuée orange */
+.flash-color { color: var(--orange); }
+
+/* Bouton extra-small */
 .btn-xs {
     padding: 0.15rem 0.45rem;
     font-size: 0.72rem;
@@ -154,7 +236,7 @@ a:hover {
     top: 0;
     bottom: -1rem;
     width: 2px;
-    background: #e5e7eb;
+    background: var(--border);
 }
 .timeline-item:last-child::before { bottom: 0; }
 .timeline-dot {
@@ -164,32 +246,164 @@ a:hover {
     width: 18px;
     height: 18px;
     border-radius: 50%;
-    border: 2px solid white;
+    border: 2px solid var(--white);
     box-shadow: 0 0 0 2px currentColor;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 8px;
-    color: white;
+    color: var(--white);
 }
 
-/* Badges urgence */
-.urgence-critique { background: #dc2626; color: white; }
-.urgence-urgent { background: #ea580c; color: white; }
-.urgence-attention { background: #ca8a04; color: white; }
-.urgence-normal { background: #16a34a; color: white; }
-.urgence-lointain { background: #6b7280; color: white; }
+/* ============================================================
+   URGENCES — couleur de texte
+   ============================================================ */
+.urgence-critique  { color: var(--danger); }
+.urgence-urgent    { color: var(--warning-dark); }
+.urgence-attention { color: var(--warning); }
+.urgence-normal    { color: var(--accent-hover); }
+.urgence-lointain  { color: var(--text-muted); }
 
-/* Responsive */
+/* ============================================================
+   DATATABLES
+   ============================================================ */
+.dataTables_wrapper .dataTables_filter input {
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    padding: 6px 12px;
+}
+.dataTables_wrapper .dataTables_length select {
+    border-radius: 6px;
+    border: 1px solid var(--border);
+}
+
+/* ============================================================
+   NAV TABS
+   ============================================================ */
+.nav-tabs .nav-link { color: var(--text-dark); }
+.nav-tabs .nav-link:hover {
+    color: var(--orange);
+    border-color: #adb5bd #adb5bd transparent;
+}
+.nav-tabs .nav-link.active { color: var(--text-dark); }
+
+/* ============================================================
+   BOUTON ORANGE OUTLINE (agenda, dashboard)
+   ============================================================ */
+.btn-outline-orange {
+    color: var(--orange);
+    border-color: var(--orange);
+    transition: background 0.15s, color 0.15s;
+}
+.btn-outline-orange:hover {
+    background: var(--orange);
+    color: var(--white);
+}
+
+/* ============================================================
+   ACTES — éditeur de modèle
+   ============================================================ */
+.var-panel-body { overflow-y: auto; max-height: 520px; }
+.modele-textarea {
+    font-size: 0.85rem;
+    line-height: 1.6;
+    resize: vertical;
+}
+.apercu-container {
+    min-height: 600px;
+    font-family: 'Times New Roman', serif;
+    font-size: 1rem;
+    line-height: 1.8;
+}
+.acte-apercu { white-space: pre-wrap; }
+.acte-apercu strong { font-weight: bold; }
+.acte-apercu em { font-style: italic; }
+.var-unresolved {
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 3px;
+    padding: 0 3px;
+    font-family: monospace;
+    font-size: 0.85em;
+}
+.bloc-conditionnel {
+    background: #e8f4fd;
+    border-left: 3px solid var(--accent);
+    display: block;
+    padding: 2px 8px;
+    margin: 4px 0;
+    border-radius: 0 4px 4px 0;
+}
+
+/* ============================================================
+   AGENDA — vues calendrier
+   ============================================================ */
+.tooltip .tooltip-inner { background: var(--text-muted); }
+.tooltip .tooltip-arrow::before { border-top-color: var(--text-muted) !important; }
+.mois-cell {
+    min-height: 110px;
+    border-right: 1px solid #f0f0f0;
+    border-bottom: 1px solid #f0f0f0;
+    padding: 5px 4px;
+}
+.mois-event {
+    font-size: 0.68rem;
+    padding: 1px 4px;
+    margin-bottom: 2px;
+    border-radius: 4px;
+    cursor: pointer;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    background: #f7f8fa;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+}
+.mois-event:hover { background: #fff7ed; }
+
+/* ============================================================
+   DASHBOARD
+   ============================================================ */
+.badge-orange { background: var(--orange); font-size: 0.65rem; }
+.alert-circle {
+    background: rgba(218,135,12,0.125);
+    width: 28px;
+    height: 28px;
+}
+.alert-circle-sm {
+    background: rgba(218,135,12,0.125);
+    width: 24px;
+    height: 24px;
+}
+
+/* ============================================================
+   DOSSIERS — chronologie
+   ============================================================ */
+.chrono-line { width: 2px; flex-grow: 1; background: var(--border); }
+.chrono-item:last-child .chrono-line { display: none; }
+.chrono-icon-circle {
+    background: rgba(218,135,12,0.125);
+    width: 36px;
+    height: 36px;
+    border: 2px solid var(--orange);
+}
+
+/* ============================================================
+   COMPTABILITÉ — KPI dégradés
+   ============================================================ */
+.kpi-card-success { background: linear-gradient(135deg, #059669, #10b981); color: var(--white); }
+.kpi-card-danger  { background: linear-gradient(135deg, var(--danger), #ef4444); color: var(--white); }
+.kpi-card-primary { background: linear-gradient(135deg, #1e40af, var(--accent)); color: var(--white); }
+
+/* ============================================================
+   PARAMÈTRES
+   ============================================================ */
+.apercu-signature { font-size: 0.85rem; white-space: pre-wrap; }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
 @media (max-width: 768px) {
-    .sidebar {
-        width: 0;
-        overflow: hidden;
-    }
-    .main-content {
-        margin-left: 0;
-    }
-    .topbar {
-        left: 0;
-    }
+    #sidebar { width: 0; overflow: hidden; }
+    #main-content { margin-left: 0; }
+    #topbar { left: 0; }
 }

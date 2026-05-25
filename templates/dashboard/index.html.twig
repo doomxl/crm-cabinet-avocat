@@ -69,8 +69,8 @@
         <div class="col-lg-7">
             <div class="card mb-3">
                 <div class="card-header d-flex align-items-center justify-content-between">
-                    <span><i class="fa fa-triangle-exclamation text-warning me-2"></i>Alertes</span>
-                    <span class="badge bg-danger" x-text="alertes.length" x-show="alertes.length > 0"></span>
+                    <span><i class="fa fa-triangle-exclamation me-2 flash-color"></i>Alertes</span>
+                    <span class="badge badge-orange" x-show="alertes.length > 0" x-text="alertes.length"></span>
                 </div>
                 <div class="card-body p-0">
                     <template x-if="alertes.length === 0">
@@ -78,8 +78,8 @@
                     </template>
                     <template x-for="alerte in alertes" :key="alerte.message">
                         <div class="d-flex align-items-center gap-3 px-4 py-3 border-bottom">
-                            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" :style="`background:${alerte.couleur}20; width:36px; height:36px;`">
-                                <i class="fa fa-exclamation" :style="`color:${alerte.couleur};`"></i>
+                            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 alert-circle-sm">
+                                <i class="fa fa-exclamation flash-color" style="font-size:0.75rem"></i>
                             </div>
                             <span class="small" x-text="alerte.message"></span>
                         </div>
@@ -90,8 +90,8 @@
             <!-- Agenda du jour -->
             <div class="card mb-3">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <span><i class="fa fa-calendar-day me-2 text-primary"></i>Agenda du jour</span>
-                    <a href="{{ path('agenda_index') }}" class="btn btn-sm btn-outline-primary">Voir tout</a>
+                    <span><i class="fa fa-calendar-day me-2 flash-color"></i>Agenda du jour</span>
+                    <a href="{{ path('agenda_index') }}" class="btn btn-sm btn-outline-orange">Voir tout</a>
                 </div>
                 <div class="card-body p-0">
                     <template x-if="rdvsAVenir.length === 0">
@@ -100,7 +100,7 @@
                     <template x-for="rdv in rdvsAVenir" :key="rdv.id">
                         <div class="d-flex align-items-center gap-3 px-4 py-3 border-bottom">
                             <div class="text-center flex-shrink-0" style="min-width:50px">
-                                <div class="fw-bold text-primary" x-text="rdv.heure"></div>
+                                <div class="fw-bold flash-color" x-text="rdv.heure"></div>
                                 <div class="small text-muted" x-text="rdv.duree + ' min'"></div>
                             </div>
                             <div>
@@ -116,8 +116,8 @@
             <!-- Échéances urgentes -->
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <span><i class="fa fa-clock text-danger me-2"></i>Échéances urgentes</span>
-                    <a href="{{ path('echeance_index') }}" class="btn btn-sm btn-outline-danger">Voir toutes</a>
+                    <span><i class="fa fa-clock me-2 flash-color"></i>Échéances urgentes</span>
+                    <a href="{{ path('echeance_index') }}" class="btn btn-sm btn-outline-orange">Voir toutes</a>
                 </div>
                 <div class="card-body p-0">
                     <template x-if="echeancesUrgentes.length === 0">
@@ -125,15 +125,15 @@
                     </template>
                     <template x-for="e in echeancesUrgentes" :key="e.id">
                         <div class="d-flex align-items-center gap-3 px-4 py-3 border-bottom">
-                            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" :style="`background:${e.urgence.couleur}20; width:40px; height:40px;`">
-                                <span class="small fw-bold" :style="`color:${e.urgence.couleur};`" x-text="e.urgence.jours + 'j'"></span>
+                            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 alert-circle">
+                                <span class="small fw-bold flash-color" x-text="e.urgence.jours + 'j'"></span>
                             </div>
                             <div class="flex-grow-1">
                                 <div class="fw-semibold small" x-text="e.type"></div>
                                 <div class="small text-muted" x-text="e.dossierTitre"></div>
                             </div>
                             <div class="text-end">
-                                <div class="small fw-bold" :style="`color:${e.urgence.couleur};`" x-text="e.urgence.texte"></div>
+                                <div class="small fw-bold flash-color" x-text="e.urgence.texte"></div>
                                 <div class="small text-muted" x-text="new Date(e.date).toLocaleDateString('fr-FR')"></div>
                             </div>
                         </div>
@@ -147,7 +147,7 @@
 
             <!-- Graphique matières -->
             <div class="card mb-3">
-                <div class="card-header"><i class="fa fa-chart-pie me-2 text-primary"></i>Répartition par matière</div>
+                <div class="card-header"><i class="fa fa-chart-pie me-2 flash-color"></i>Répartition par matière</div>
                 <div class="card-body">
                     <canvas id="chartMatieres" height="34"></canvas>
                 </div>
@@ -217,12 +217,13 @@ function dashboard() {
                             position: 'right',
                             labels: {
                                 boxWidth: 12,
-                                font: { size: 11, family: 'DejaVu Sans Mono' },
+                                font: { size: 11, family: 'DejaVu Sans Mono', style: 'italic' },
                                 generateLabels(chart) {
                                     const dataset = chart.data.datasets[0];
                                     const total = dataset.data.reduce((a, b) => a + b, 0);
+                                    const maxLen = Math.max(...chart.data.labels.map(l => l.length));
                                     return chart.data.labels.map((label, i) => ({
-                                        text: `${label} ${total > 0 ? Math.round(dataset.data[i] / total * 100) : 0}%`,
+                                        text: `${label.padEnd(maxLen + 1)}${String(total > 0 ? Math.round(dataset.data[i] / total * 100) : 0).padStart(3)}%`,
                                         fillStyle: dataset.backgroundColor[i],
                                         strokeStyle: '#fff',
                                         lineWidth: 1,

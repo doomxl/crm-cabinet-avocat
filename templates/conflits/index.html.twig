@@ -15,7 +15,7 @@
 </div>
 
 <!-- Formulaire de vérification inline -->
-<div class="card mb-4 border-warning" x-show="showVerification" x-transition>
+<div class="card mb-4 border-warning" x-show="showVerification" x-cloak x-transition>
     <div class="card-header bg-warning bg-opacity-10">
         <i class="fa fa-search me-2 text-warning"></i>Vérification de conflit
     </div>
@@ -66,7 +66,7 @@
 </div>
 
 <!-- Résultat de vérification -->
-<div class="card mb-4" x-show="resultatVerif !== null" x-transition>
+<div class="card mb-4" x-show="resultatVerif !== null" x-cloak x-transition>
     <div class="card-header d-flex justify-content-between align-items-center"
          :class="resultatVerif && resultatVerif.aConflits ? 'bg-danger bg-opacity-10' : 'bg-success bg-opacity-10'">
         <span>
@@ -229,7 +229,7 @@
 </div>
 
 <!-- Modal détail (sans modal Bootstrap — panneau inline) -->
-<div class="card mt-3 border-primary" x-show="verifDetail !== null" x-transition>
+<div class="card mt-3 border-primary" x-show="verifDetail !== null" x-cloak x-transition>
     <div class="card-header bg-primary bg-opacity-10 d-flex justify-content-between align-items-center">
         <span><i class="fa fa-info-circle me-2 text-primary"></i>Détail de la vérification</span>
         <button class="btn btn-sm btn-outline-secondary" @click="verifDetail = null">Fermer</button>

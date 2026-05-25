@@ -35,7 +35,7 @@ class DashboardApiController extends AbstractController
         $echeancesUrgentes = $this->echeanceRepo->findUrgentes(7);
         $caMoisCourant = $this->factureRepo->getMontantMensuel($today);
         $factures = $this->factureRepo->findImpayees();
-        $rdvsAVenir = $this->rdvRepo->findAVenir(5);
+        $rdvsAVenir = $this->rdvRepo->findToday();
 
         // Répartition par matière
         $parMatiere = $this->dossierRepo->countByMatiere();

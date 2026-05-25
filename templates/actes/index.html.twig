@@ -35,7 +35,7 @@
                         <span class="small fw-semibold">Variables disponibles</span>
                         <button class="btn btn-xs btn-outline-secondary" @click="showEditVarsPanel = false"><i class="fa fa-times"></i></button>
                     </div>
-                    <div class="card-body p-2" style="overflow-y:auto; max-height:520px;">
+                    <div class="card-body p-2 var-panel-body">
                         <div class="small text-muted mb-2">Cliquez sur une variable pour l'insérer au curseur.</div>
                         <template x-for="groupe in variableGroups" :key="groupe.titre">
                             <div class="mb-3">
@@ -77,7 +77,7 @@
             </div>
             <div :class="showEditVarsPanel ? 'col-md-9' : 'col-md-12'">
                 <label class="form-label small text-muted mb-1">Contenu du modèle</label>
-                <div class="d-flex flex-wrap gap-1 align-items-center px-2 py-1 border border-bottom-0 rounded-top" style="background:#f8f9fa;">
+                <div class="d-flex flex-wrap gap-1 align-items-center px-2 py-1 border border-bottom-0 rounded-top bg-light">
                     <button type="button" class="btn btn-xs btn-outline-secondary fw-bold" @click="mdActionEdit('gras')" title="Gras">G</button>
                     <button type="button" class="btn btn-xs btn-outline-secondary fst-italic" @click="mdActionEdit('italique')" title="Italique">I</button>
                     <div class="vr mx-1"></div>
@@ -92,10 +92,9 @@
                 </div>
                 <textarea
                     id="editModeleTextarea"
-                    class="form-control font-monospace"
+                    class="form-control font-monospace modele-textarea rounded-top-0"
                     x-model="editData.contenu"
-                    rows="12"
-                    style="font-size:0.85rem; line-height:1.6; resize:vertical; border-top-left-radius:0; border-top-right-radius:0;"></textarea>
+                    rows="12"></textarea>
             </div>
         </div>
         <div class="mt-3 text-end">
@@ -135,7 +134,7 @@
                             <i class="fa fa-times"></i>
                         </button>
                     </div>
-                    <div class="card-body p-2" style="overflow-y:auto; max-height:520px;">
+                    <div class="card-body p-2 var-panel-body">
                         <div class="small text-muted mb-2">Cliquez sur une variable pour l'insérer au curseur.</div>
 
                         <template x-for="groupe in variableGroups" :key="groupe.titre">
@@ -217,7 +216,7 @@
             <div :class="showVarsPanel ? 'col-md-9' : 'col-md-12'">
                 <label class="form-label small text-muted mb-1">Contenu du modèle</label>
                 <!-- Barre markdown -->
-                <div class="d-flex flex-wrap gap-1 align-items-center px-2 py-1 border border-bottom-0 rounded-top" style="background:#f8f9fa;">
+                <div class="d-flex flex-wrap gap-1 align-items-center px-2 py-1 border border-bottom-0 rounded-top bg-light">
                     <button type="button" class="btn btn-xs btn-outline-secondary fw-bold" @click="mdActionModele('gras')" title="Gras (**texte**)">G</button>
                     <button type="button" class="btn btn-xs btn-outline-secondary fst-italic" @click="mdActionModele('italique')" title="Italique (*texte*)">I</button>
                     <div class="vr mx-1"></div>
@@ -233,10 +232,9 @@
                 </div>
                 <textarea
                     id="modeleTextarea"
-                    class="form-control font-monospace"
+                    class="form-control font-monospace modele-textarea rounded-top-0"
                     x-model="newModele.contenu"
                     rows="12"
-                    style="font-size:0.85rem; line-height:1.6; resize:vertical; border-top-left-radius:0; border-top-right-radius:0;"
                     placeholder="Rédigez votre modèle ici...
 Utilisez le panneau Variables (bouton en haut à droite) pour insérer des variables et des blocs syntaxiques."></textarea>
             </div>

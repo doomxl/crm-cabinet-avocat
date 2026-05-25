@@ -6,13 +6,19 @@
 {% endblock %}
 {% block content %}
 <div x-data="agenda()" x-init="init()">
+
+<!-- Titre + actions -->
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h4 class="mb-0 fw-bold"><i class="fa fa-calendar-days text-primary me-2"></i>Agenda</h4>
-    <button class="btn btn-primary" @click="showForm = !showForm"><i class="fa fa-plus me-1"></i>Nouveau RDV</button>
+    <h4 class="mb-0 fw-bold">Agenda</h4>
+    <div class="d-flex gap-2">
+        <button class="btn btn-sm btn-outline-orange" @click="toggleVue()"
+                x-text="vue === 'semaine' ? 'Vue mensuelle' : 'Vue hebdomadaire'"></button>
+        <button class="btn btn-primary" @click="showForm = !showForm"><i class="fa fa-plus me-1"></i>Nouveau RDV</button>
+    </div>
 </div>
 
 <!-- Formulaire ajout RDV inline -->
-<div class="card mb-3" x-show="showForm">
+<div class="card mb-3" x-show="showForm" x-cloak>
     <div class="card-header">Nouveau rendez-vous</div>
     <div class="card-body">
         <div class="row g-2">
@@ -60,34 +66,187 @@
     </div>
 </div>
 
-<!-- Navigation semaine -->
-<div class="d-flex align-items-center justify-content-between mb-3">
-    <button class="btn btn-sm btn-outline-secondary" @click="semainePrecedente()"><i class="fa fa-chevron-left"></i></button>
-    <h6 class="mb-0 fw-semibold" x-text="labelSemaine()"></h6>
-    <button class="btn btn-sm btn-outline-secondary" @click="semaineSuivante()"><i class="fa fa-chevron-right"></i></button>
-    <button class="btn btn-sm btn-outline-primary ms-3" @click="aller(new Date())">Aujourd'hui</button>
+<!-- Formulaire édition RDV inline -->
+<div class="card mb-3 border-primary" x-show="showEdit" x-cloak>
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>Modifier le rendez-vous</span>
+        <button class="btn-close btn-sm" @click="showEdit = false"></button>
+    </div>
+    <div class="card-body">
+        <div class="row g-2">
+            <div class="col-md-3">
+                <label class="form-label small">Client</label>
+                <select class="form-select form-select-sm" x-model="editRdv.clientId">
+                    <option value="">-- Aucun --</option>
+                    {% for client in clients %}
+                    <option value="{{ client.id }}">{{ client.nomComplet }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small">Date</label>
+                <input type="date" class="form-control form-control-sm" x-model="editRdv.date">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small">Heure</label>
+                <input type="time" class="form-control form-control-sm" x-model="editRdv.heure">
+            </div>
+            <div class="col-md-1">
+                <label class="form-label small">Durée (min)</label>
+                <input type="number" class="form-control form-control-sm" x-model="editRdv.duree" min="15" step="15">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small">Type</label>
+                <select class="form-select form-select-sm" x-model="editRdv.type">
+                    {% for t in typesRdv %}
+                    <option value="{{ t }}">{{ t }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small">Lieu</label>
+                <input type="text" class="form-control form-control-sm" x-model="editRdv.lieu">
+            </div>
+            <div class="col-12">
+                <textarea class="form-control form-control-sm" x-model="editRdv.notes" rows="2" placeholder="Notes..."></textarea>
+            </div>
+        </div>
+        <div class="mt-2 d-flex justify-content-between">
+            <button class="btn btn-sm btn-outline-orange" @click="supprimerRdv()">
+                <i class="fa fa-trash me-1"></i>Supprimer
+            </button>
+            <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-outline-secondary" @click="showEdit = false">Annuler</button>
+                <button class="btn btn-sm btn-primary" @click="sauvegarderEdit()">
+                    <i class="fa fa-save me-1"></i>Enregistrer
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
-<!-- Calendrier semaine -->
-<div class="card">
-    <div class="card-body p-0">
-        <div class="row g-0">
-            <template x-for="(jour, idx) in joursSemaine" :key="idx">
-                <div class="col border-end" :class="isToday(jour) ? 'bg-primary bg-opacity-10' : ''">
-                    <div class="text-center py-2 border-bottom fw-semibold small" :class="isToday(jour) ? 'text-primary' : 'text-muted'">
+<!-- ═══════════════════ VUE SEMAINE ═══════════════════ -->
+<div x-show="vue === 'semaine'">
+
+    <!-- Navigation semaine -->
+    <div class="d-flex align-items-center gap-2 mb-3">
+        <button class="btn btn-sm btn-outline-orange" @click="semainePrecedente()"><i class="fa fa-chevron-left"></i></button>
+        <h6 class="mb-0 fw-semibold" x-text="labelSemaine()"></h6>
+        <button class="btn btn-sm btn-outline-orange" @click="semaineSuivante()"><i class="fa fa-chevron-right"></i></button>
+        <button class="btn btn-sm btn-outline-orange" @click="aller(new Date())">Aujourd'hui</button>
+    </div>
+
+    <!-- Calendrier semaine -->
+    <div class="card" style="overflow:hidden">
+        <div class="card-body p-0">
+
+            <!-- En-têtes des jours -->
+            <div style="display:grid;grid-template-columns:52px repeat(7,1fr);border-bottom:1px solid #e5e7eb;background:#f7f8fa">
+                <div style="border-right:1px solid #f0f0f0"></div>
+                <template x-for="(jour, idx) in joursSemaine" :key="'hdr-'+idx">
+                    <div class="text-center py-2 fw-semibold small"
+                         style="border-left:1px solid #f0f0f0"
+                         :class="isToday(jour) ? 'text-primary bg-primary bg-opacity-10' : 'text-muted'"
+                         :style="isToday(jour) ? '' : 'background:#f7f8fa'">
                         <div x-text="['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'][idx]"></div>
                         <div class="fw-bold" x-text="jour.getDate()"></div>
                     </div>
-                    <div class="p-1" style="min-height:200px">
+                </template>
+            </div>
+
+            <!-- Grille horaire -->
+            <div style="display:grid;grid-template-columns:52px repeat(7,1fr)">
+
+                <!-- Colonne heures -->
+                <div style="border-right:1px solid #f0f0f0;background:#f7f8fa">
+                    <template x-for="h in heures" :key="'h-'+h">
+                        <div style="height:60px;border-bottom:1px solid #dde1e7;position:relative">
+                            <span class="fw-bold small"
+                                  style="position:absolute;top:-0.55em;left:0;right:0;text-align:center;background:#f7f8fa;line-height:1;padding:0 2px;color:#da870c"
+                                  x-text="String(h).padStart(2,'0')+'h'"></span>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Colonnes jours -->
+                <template x-for="(jour, idx) in joursSemaine" :key="'col-'+idx">
+                    <div class="position-relative" style="border-left:1px solid #f0f0f0;min-width:0"
+                         :class="isToday(jour) ? 'bg-primary bg-opacity-10' : ''">
+                        <!-- Lignes de fond -->
+                        <template x-for="h in heures" :key="'slot-'+h">
+                            <div style="height:60px;border-bottom:1px solid #dde1e7"></div>
+                        </template>
+                        <!-- Événements positionnés -->
                         <template x-for="rdv in getRdvsForDay(jour)" :key="rdv.id">
-                            <div class="rounded p-1 mb-1 small" style="background:#3b82f620;border-left:3px solid #3b82f6">
-                                <div class="fw-semibold" x-text="rdv.heure + ' - ' + rdv.type"></div>
-                                <div class="text-muted" x-text="rdv.clientNom || 'Sans client'"></div>
+                            <div class="position-absolute px-2 d-flex flex-column align-items-start justify-content-center"
+                                 :style="getEventStyle(rdv)"
+                                 :title="rdv.heure + ' - ' + heureFin(rdv)"
+                                 data-bs-toggle="tooltip"
+                                 @click.stop="openEdit(rdv)"
+                                 x-init="new bootstrap.Tooltip($el)">
+                                <div class="fw-bold lh-sm" style="font-size:0.82rem"
+                                     x-text="rdv.type"></div>
+                                <div class="lh-sm" style="font-size:0.62rem;letter-spacing:0.03em;color:#da870c"
+                                     x-text="(rdv.clientNom || '').toUpperCase()"></div>
                             </div>
                         </template>
                     </div>
-                </div>
-            </template>
+                </template>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════ VUE MENSUELLE ═══════════════════ -->
+<div x-show="vue === 'mois'" x-cloak>
+
+    <!-- Navigation mois -->
+    <div class="d-flex align-items-center gap-2 mb-3">
+        <button class="btn btn-sm btn-outline-orange" @click="moisPrecedent()"><i class="fa fa-chevron-left"></i></button>
+        <h6 class="mb-0 fw-semibold text-capitalize" x-text="labelMois()"></h6>
+        <button class="btn btn-sm btn-outline-orange" @click="moisSuivant()"><i class="fa fa-chevron-right"></i></button>
+        <button class="btn btn-sm btn-outline-orange" @click="allerMois(new Date())">Aujourd'hui</button>
+    </div>
+
+    <!-- Grille mensuelle -->
+    <div class="card" style="overflow:hidden">
+        <div class="card-body p-0">
+
+            <!-- En-têtes jours -->
+            <div style="display:grid;grid-template-columns:repeat(7,1fr);background:#f7f8fa;border-bottom:1px solid #e5e7eb">
+                <template x-for="(label, idx) in ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim']" :key="'mhdr-'+idx">
+                    <div class="text-center py-2 fw-semibold small text-muted"
+                         :style="idx > 0 ? 'border-left:1px solid #f0f0f0' : ''"
+                         x-text="label"></div>
+                </template>
+            </div>
+
+            <!-- Cellules jours -->
+            <div style="display:grid;grid-template-columns:repeat(7,1fr)">
+                <template x-for="(jour, idx) in joursMois" :key="'mday-'+idx">
+                    <div class="mois-cell"
+                         :class="!jour.isCurrentMonth ? 'bg-light' : isToday(jour.date) ? 'bg-primary bg-opacity-10' : ''"
+                         :style="idx % 7 !== 0 ? 'border-left:1px solid #f0f0f0' : ''">
+                        <!-- Numéro du jour -->
+                        <div class="fw-bold mb-1" style="font-size:0.78rem"
+                             :style="isToday(jour.date) ? 'color:#da870c' : jour.isCurrentMonth ? 'color:#6b7280' : 'color:#d1d5db'"
+                             x-text="jour.date.getDate()"></div>
+                        <!-- Événements -->
+                        <template x-for="rdv in getRdvsForDay(jour.date)" :key="'me-'+rdv.id">
+                            <div class="mois-event"
+                                 @click.stop="openEdit(rdv)"
+                                 :title="rdv.heure + ' - ' + heureFin(rdv)"
+                                 data-bs-toggle="tooltip"
+                                 x-init="new bootstrap.Tooltip($el)">
+                                <span class="fw-bold" x-text="rdv.type"></span>
+                                <span x-show="rdv.clientNom" style="color:#da870c;font-size:0.50rem;letter-spacing:0.03em" x-text="' · ' + (rdv.clientNom || '').toUpperCase()"></span>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+            </div>
+
         </div>
     </div>
 </div>
@@ -98,14 +257,20 @@
 <script>
 function agenda() {
     return {
-        rdvs: [], joursSemaine: [], currentWeekStart: null, showForm: false,
+        rdvs: [], joursSemaine: [], joursMois: [],
+        currentWeekStart: null, currentMonthStart: null,
+        showForm: false, showEdit: false,
+        vue: 'semaine',
+        heures: Array.from({length: 17}, (_, i) => i + 6),
         newRdv: {clientId:'', date:new Date().toISOString().split('T')[0], heure:'09:00', duree:60, type:'Consultation', lieu:'Cabinet', notes:''},
+        editRdv: {id:null, clientId:'', date:'', heure:'', duree:60, type:'', lieu:'', notes:''},
 
         async init() {
             const now = new Date();
             const day = now.getDay();
             this.currentWeekStart = new Date(now);
             this.currentWeekStart.setDate(now.getDate() - (day === 0 ? 6 : day - 1));
+            this.currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
             this.buildJours();
             await this.loadRdvs();
         },
@@ -118,11 +283,38 @@ function agenda() {
             });
         },
 
+        buildJoursMois() {
+            const year  = this.currentMonthStart.getFullYear();
+            const month = this.currentMonthStart.getMonth();
+            const firstDay = new Date(year, month, 1);
+            const lastDay  = new Date(year, month + 1, 0);
+
+            const startDow = firstDay.getDay();
+            const start = new Date(firstDay);
+            start.setDate(firstDay.getDate() - (startDow === 0 ? 6 : startDow - 1));
+
+            const endDow = lastDay.getDay();
+            const end = new Date(lastDay);
+            if (endDow !== 0) end.setDate(lastDay.getDate() + (7 - endDow));
+
+            const days = [];
+            const cur = new Date(start);
+            while (cur <= end) {
+                days.push({ date: new Date(cur), isCurrentMonth: cur.getMonth() === month });
+                cur.setDate(cur.getDate() + 1);
+            }
+            this.joursMois = days;
+        },
+
         getSemaineStr() {
             const year = this.currentWeekStart.getFullYear();
             const startOfYear = new Date(year, 0, 1);
             const week = Math.ceil(((this.currentWeekStart - startOfYear) / 86400000 + startOfYear.getDay() + 1) / 7);
-            return `${year}-W${String(week).padStart(2,'0')}`;
+            return `${year}-W${String(week).padStart(2,'00')}`;
+        },
+
+        getMoisStr() {
+            return `${this.currentMonthStart.getFullYear()}-${String(this.currentMonthStart.getMonth() + 1).padStart(2,'0')}`;
         },
 
         async loadRdvs() {
@@ -130,13 +322,37 @@ function agenda() {
             if (data.success) this.rdvs = data.data;
         },
 
+        async loadRdvsMois() {
+            const data = await api.get(`/api/rendezvous?mois=${this.getMoisStr()}`);
+            if (data.success) this.rdvs = data.data;
+        },
+
         getRdvsForDay(jour) {
-            const dateStr = jour.toISOString().split('T')[0];
+            const y = jour.getFullYear();
+            const m = String(jour.getMonth() + 1).padStart(2, '0');
+            const d = String(jour.getDate()).padStart(2, '0');
+            const dateStr = `${y}-${m}-${d}`;
             return this.rdvs.filter(r => r.date === dateStr);
         },
 
         isToday(jour) {
             return jour.toDateString() === new Date().toDateString();
+        },
+
+        heureFin(rdv) {
+            const [h, m] = rdv.heure.split(':').map(Number);
+            const total = h * 60 + m + (rdv.duree || 60);
+            return String(Math.floor(total / 60) % 24).padStart(2,'0') + ':' + String(total % 60).padStart(2,'0');
+        },
+
+        getEventStyle(rdv) {
+            const [h, m] = rdv.heure.split(':').map(Number);
+            const top    = Math.max(0, (h - 6) * 60 + m);
+            const height = Math.max(rdv.duree || 60, 25);
+            return `top:${top}px;height:${height}px;left:3px;right:3px;`
+                 + `background:#f7f8fa;`
+                 + `border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,0.12);`
+                 + `overflow:hidden;cursor:pointer;z-index:1;`;
         },
 
         labelSemaine() {
@@ -145,14 +361,22 @@ function agenda() {
             return `${this.currentWeekStart.toLocaleDateString('fr-FR', {day:'2-digit',month:'long'})} — ${fin.toLocaleDateString('fr-FR', {day:'2-digit',month:'long',year:'numeric'})}`;
         },
 
+        labelMois() {
+            return this.currentMonthStart.toLocaleDateString('fr-FR', {month:'long', year:'numeric'});
+        },
+
         async semainePrecedente() {
-            this.currentWeekStart.setDate(this.currentWeekStart.getDate() - 7);
+            const d = new Date(this.currentWeekStart);
+            d.setDate(d.getDate() - 7);
+            this.currentWeekStart = d;
             this.buildJours();
             await this.loadRdvs();
         },
 
         async semaineSuivante() {
-            this.currentWeekStart.setDate(this.currentWeekStart.getDate() + 7);
+            const d = new Date(this.currentWeekStart);
+            d.setDate(d.getDate() + 7);
+            this.currentWeekStart = d;
             this.buildJours();
             await this.loadRdvs();
         },
@@ -165,6 +389,38 @@ function agenda() {
             await this.loadRdvs();
         },
 
+        async moisPrecedent() {
+            const d = this.currentMonthStart;
+            this.currentMonthStart = new Date(d.getFullYear(), d.getMonth() - 1, 1);
+            this.buildJoursMois();
+            await this.loadRdvsMois();
+        },
+
+        async moisSuivant() {
+            const d = this.currentMonthStart;
+            this.currentMonthStart = new Date(d.getFullYear(), d.getMonth() + 1, 1);
+            this.buildJoursMois();
+            await this.loadRdvsMois();
+        },
+
+        async allerMois(date) {
+            this.currentMonthStart = new Date(date.getFullYear(), date.getMonth(), 1);
+            this.buildJoursMois();
+            await this.loadRdvsMois();
+        },
+
+        async toggleVue() {
+            if (this.vue === 'semaine') {
+                this.vue = 'mois';
+                this.currentMonthStart = new Date(this.currentWeekStart.getFullYear(), this.currentWeekStart.getMonth(), 1);
+                this.buildJoursMois();
+                await this.loadRdvsMois();
+            } else {
+                this.vue = 'semaine';
+                await this.loadRdvs();
+            }
+        },
+
         async addRdv() {
             const data = await api.post('/api/rendezvous', this.newRdv);
             if (data.success) {
@@ -172,7 +428,43 @@ function agenda() {
                 this.showForm = false;
                 notify('Rendez-vous ajouté');
             } else notify(data.error, 'error');
-        }
+        },
+
+        openEdit(rdv) {
+            this.editRdv = {
+                id: rdv.id,
+                clientId: rdv.clientId ?? '',
+                date: rdv.date,
+                heure: rdv.heure,
+                duree: rdv.duree ?? 60,
+                type: rdv.type,
+                lieu: rdv.lieu ?? '',
+                notes: rdv.notes ?? '',
+            };
+            this.showEdit = true;
+            this.showForm = false;
+            this.$nextTick(() => window.scrollTo({ top: 0, behavior: 'smooth' }));
+        },
+
+        async sauvegarderEdit() {
+            const data = await api.put('/api/rendezvous/' + this.editRdv.id, this.editRdv);
+            if (data.success) {
+                const idx = this.rdvs.findIndex(r => r.id === this.editRdv.id);
+                if (idx !== -1) this.rdvs[idx] = data.data;
+                this.showEdit = false;
+                notify('Rendez-vous modifié');
+            } else notify(data.error || 'Erreur', 'error');
+        },
+
+        async supprimerRdv() {
+            if (!confirm('Supprimer ce rendez-vous ?')) return;
+            const data = await api.delete('/api/rendezvous/' + this.editRdv.id);
+            if (data.success) {
+                this.rdvs = this.rdvs.filter(r => r.id !== this.editRdv.id);
+                this.showEdit = false;
+                notify('Rendez-vous supprimé');
+            } else notify(data.error || 'Erreur', 'error');
+        },
     };
 }
 </script>

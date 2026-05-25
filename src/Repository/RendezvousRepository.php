@@ -44,6 +44,36 @@ class RendezvousRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    public function findByMois(string $mois): array
+    {
+        // mois format: 2024-05
+        $debut = new \DateTimeImmutable($mois . '-01');
+        $fin   = $debut->modify('last day of this month');
+        return $this->createQueryBuilder('r')
+            ->leftJoin('r.client', 'c')
+            ->addSelect('c')
+            ->where('r.date BETWEEN :debut AND :fin')
+            ->setParameter('debut', $debut->format('Y-m-d'))
+            ->setParameter('fin', $fin->format('Y-m-d'))
+            ->orderBy('r.date', 'ASC')
+            ->addOrderBy('r.heure', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findToday(): array
+    {
+        $today = (new \DateTimeImmutable())->format('Y-m-d');
+        return $this->createQueryBuilder('r')
+            ->leftJoin('r.client', 'c')
+            ->addSelect('c')
+            ->where('r.date = :today')
+            ->setParameter('today', $today)
+            ->orderBy('r.heure', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
     public function findAVenir(int $limit = 5): array
     {
         return $this->createQueryBuilder('r')

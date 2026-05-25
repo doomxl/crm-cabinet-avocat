@@ -10,7 +10,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/api/rendezvous', name: 'api_rendezvous_')]
 class RendezvousApiController extends AbstractController
@@ -30,6 +30,8 @@ class RendezvousApiController extends AbstractController
             $rdvs = $this->rdvRepo->findByDate($date);
         } elseif ($request->query->has('semaine')) {
             $rdvs = $this->rdvRepo->findBySemaine($request->query->get('semaine'));
+        } elseif ($request->query->has('mois')) {
+            $rdvs = $this->rdvRepo->findByMois($request->query->get('mois'));
         } else {
             $rdvs = $this->rdvRepo->findAll();
         }

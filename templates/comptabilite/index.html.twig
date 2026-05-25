@@ -9,7 +9,7 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4 class="mb-0 fw-bold"><i class="fa fa-calculator text-primary me-2"></i>Livre Journal BNC</h4>
     <div class="d-flex gap-2">
-        <select class="form-select form-select-sm" style="width:auto" x-model="annee" @change="loadData()">
+        <select class="form-select form-select-sm w-auto" x-model="annee" @change="loadData()">
             <template x-for="y in annees" :key="y">
                 <option :value="y" x-text="y"></option>
             </template>
@@ -23,19 +23,19 @@
 <!-- KPIs -->
 <div class="row g-3 mb-4">
     <div class="col-md-4">
-        <div class="kpi-card" style="background:linear-gradient(135deg,#059669,#10b981)">
+        <div class="kpi-card kpi-card-success">
             <div class="kpi-value" x-text="totalRecettes.toLocaleString('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0})"></div>
             <div class="kpi-label">Total Recettes</div>
         </div>
     </div>
     <div class="col-md-4">
-        <div class="kpi-card" style="background:linear-gradient(135deg,#dc2626,#ef4444)">
+        <div class="kpi-card kpi-card-danger">
             <div class="kpi-value" x-text="totalDepenses.toLocaleString('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0})"></div>
             <div class="kpi-label">Total Dépenses</div>
         </div>
     </div>
     <div class="col-md-4">
-        <div class="kpi-card" style="background:linear-gradient(135deg,#1e40af,#3b82f6)">
+        <div class="kpi-card kpi-card-primary">
             <div class="kpi-value" x-text="(totalRecettes - totalDepenses).toLocaleString('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0})"></div>
             <div class="kpi-label">Bénéfice net</div>
         </div>
@@ -92,7 +92,7 @@
     <div class="card-header d-flex justify-content-between align-items-center">
         <span>Journal des écritures <span class="badge bg-secondary" x-text="ecritures.length"></span></span>
         <div class="d-flex gap-2">
-            <select class="form-select form-select-sm" style="width:auto" x-model="filtreType" @change="applyFilters()">
+            <select class="form-select form-select-sm w-auto" x-model="filtreType" @change="applyFilters()">
                 <option value="">Tous</option>
                 <option value="recette">Recettes</option>
                 <option value="depense">Dépenses</option>

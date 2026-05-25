@@ -1,0 +1,63 @@
+<nav id="sidebar">
+    <a href="{{ path('dashboard_index') }}" class="brand">
+        <i class="fa fa-scale-balanced flash-color"></i> Cabinet Avocat
+        <small>CRM {{ app_version }}</small>
+    </a>
+
+    <div class="nav-section">Principal</div>
+
+    <a href="{{ path('dashboard_index') }}" class="nav-link {{ app.request.get('_route') == 'dashboard_index' ? 'active' : '' }}">
+        <i class="fa fa-chart-pie"></i> Tableau de bord
+    </a>
+
+    <div class="nav-section">Gestion</div>
+
+    <a href="{{ path('client_index') }}" class="nav-link {{ app.request.get('_route') starts with 'client_' ? 'active' : '' }}">
+        <i class="fa fa-users"></i> Clients
+    </a>
+
+    <a href="{{ path('dossier_index') }}" class="nav-link {{ app.request.get('_route') starts with 'dossier_' ? 'active' : '' }}">
+        <i class="fa fa-folder-open"></i> Dossiers
+    </a>
+
+    <a href="{{ path('acte_index') }}" class="nav-link {{ app.request.get('_route') starts with 'acte_' ? 'active' : '' }}">
+        <i class="fa fa-file-contract"></i> Actes &amp; Modèles
+    </a>
+
+    <div class="nav-section">Finance</div>
+
+    <a href="{{ path('facture_index') }}" class="nav-link {{ app.request.get('_route') starts with 'facture_' ? 'active' : '' }}">
+        <i class="fa fa-file-invoice-dollar"></i> Honoraires
+    </a>
+
+    <a href="{{ path('comptabilite_index') }}" class="nav-link {{ app.request.get('_route') == 'comptabilite_index' ? 'active' : '' }}">
+        <i class="fa fa-calculator"></i> Comptabilité
+    </a>
+
+    <div class="nav-section">Planification</div>
+
+    <a href="{{ path('agenda_index') }}" class="nav-link {{ app.request.get('_route') == 'agenda_index' ? 'active' : '' }}">
+        <i class="fa fa-calendar-days"></i> Agenda
+    </a>
+
+    <a href="{{ path('temps_index') }}" class="nav-link {{ app.request.get('_route') == 'temps_index' ? 'active' : '' }}">
+        <i class="fa fa-stopwatch"></i> Temps
+    </a>
+
+    <a href="{{ path('echeance_index') }}" class="nav-link {{ app.request.get('_route') == 'echeance_index' ? 'active' : '' }}" id="nav-echeances">
+        <i class="fa fa-clock"></i> Échéances
+        <span class="nav-badge" id="badge-echeances" style="display:none"></span>
+    </a>
+
+    <div class="nav-section">Contrôle</div>
+
+    <a href="{{ path('conflit_index') }}" class="nav-link {{ app.request.get('_route') == 'conflit_index' ? 'active' : '' }}">
+        <i class="fa-solid fa-bolt-lightning"></i> Conflits
+    </a>
+
+    <div class="nav-section">Administration</div>
+
+    <a href="{{ path('parametres_index') }}" class="nav-link {{ app.request.get('_route') == 'parametres_index' ? 'active' : '' }}">
+        <i class="fa fa-gear"></i> Paramètres
+    </a>
+</nav>

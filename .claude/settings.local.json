@@ -4,7 +4,10 @@
       "Bash(Select-String -Pattern \"Cabinet\")",
       "Bash(php -l src/Service/TemplateMoteurService.php src/Service/PdfService.php src/Service/WordService.php src/Controller/Api/ActeGenereApiController.php)",
       "Bash(php bin/console lint:twig templates/actes/index.html.twig)",
-      "PowerShell(Get-ChildItem \"c:\\\\laragon\\\\www\\\\crm-cabinet-avocat\\\\templates\" -Recurse | Where-Object { $_.Name -match \"acte\" })"
+      "PowerShell(Get-ChildItem \"c:\\\\laragon\\\\www\\\\crm-cabinet-avocat\\\\templates\" -Recurse | Where-Object { $_.Name -match \"acte\" })",
+      "Bash(php bin/console doctrine:migrations:migrate --no-interaction)",
+      "Bash(php bin/console cache:clear)",
+      "PowerShell(New-Item -ItemType Directory -Force \"C:\\\\laragon\\\\www\\\\crm-cabinet-avocat\\\\templates\\\\partials\\\\base\")"
     ]
   }
 }

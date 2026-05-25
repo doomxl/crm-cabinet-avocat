@@ -1,0 +1,130 @@
+<!-- Backdrop flou -->
+<div x-show="showResults" x-cloak @click="close()" class="search-backdrop"></div>
+
+<!-- Panel résultats de recherche -->
+<div id="search-panel" x-show="showResults" x-cloak @keydown.escape.window="close()">
+    <div class="card">
+        <div class="card-header d-flex align-items-center justify-content-between py-2">
+            <span class="fw-semibold">
+                <i class="fa fa-search me-2"></i>Résultats
+                <template x-if="!loading">
+                    <span class="text-muted fw-normal ms-1 small">
+                        — <span x-text="results.clients.length + results.dossiers.length"></span> résultat<span x-show="results.clients.length + results.dossiers.length > 1">s</span>
+                    </span>
+                </template>
+            </span>
+            <button class="btn-close btn-sm" @click="close()"></button>
+        </div>
+        <div class="card-body py-2 search-results-body">
+
+            <template x-if="loading">
+                <div class="text-center py-3 text-muted fst-italic small">
+                    <i class="fa fa-spinner fa-spin me-1"></i>Recherche en cours...
+                </div>
+            </template>
+
+            <template x-if="!loading && done">
+                <div>
+                    <template x-if="results.clients.length === 0 && results.dossiers.length === 0">
+                        <div class="text-center text-muted py-3 fst-italic small">Aucun résultat trouvé</div>
+                    </template>
+
+                    <!-- Sous-card Clients -->
+                    <template x-if="results.clients.length > 0">
+                        <div class="mb-5 mt-3">
+                            <div class="small fw-semibold text-dark mb-1 ps-1">
+                                <i class="fa fa-users me-1 flash-color"></i>Clients
+                                (<span x-text="results.clients.length"></span>)
+                            </div>
+                            <div class="search-table-container">
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-hover align-middle mb-0 search-table">
+                                        <thead class="search-table-head">
+                                            <tr>
+                                                <th>Code</th>
+                                                <th>Nom / Raison sociale</th>
+                                                <th>Type</th>
+                                                <th>Email</th>
+                                                <th>Téléphone</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <template x-for="c in results.clients" :key="c.id">
+                                                <tr>
+                                                    <td class="text-muted" x-text="c.codeClient"></td>
+                                                    <td class="fw-semibold" x-text="c.nomComplet"></td>
+                                                    <td><span class="badge bg-secondary" x-text="c.typeClient"></span></td>
+                                                    <td x-text="c.email ?? '—'"></td>
+                                                    <td x-text="c.telephone ?? '—'"></td>
+                                                    <td>
+                                                        <a :href="`/clients/${c.id}`" class="text-muted" @click="close()" title="Ouvrir">
+                                                            <i class="fa fa-arrow-up-right-from-square search-open-icon"></i>
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+
+                    <!-- Sous-card Dossiers -->
+                    <template x-if="results.dossiers.length > 0">
+                        <div class="mb-5">
+                            <div class="small fw-semibold text-dark mb-1 ps-1">
+                                <i class="fa fa-folder-open me-1 flash-color"></i>Dossiers
+                                (<span x-text="results.dossiers.length"></span>)
+                            </div>
+                            <div class="search-table-container">
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-hover align-middle mb-0 search-table">
+                                        <thead class="search-table-head">
+                                            <tr>
+                                                <th>Titre du dossier</th>
+                                                <th>Client</th>
+                                                <th>Statut</th>
+                                                <th>Partie adverse</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <template x-for="d in results.dossiers" :key="d.id">
+                                                <tr>
+                                                    <td class="fw-semibold" x-text="d.titre"></td>
+                                                    <td x-text="d.clientNom ?? '—'"></td>
+                                                    <td>
+                                                        <span class="badge"
+                                                            :class="{
+                                                                'bg-primary':   d.statut === 'En cours',
+                                                                'bg-secondary': d.statut === 'Clos' || d.statut === 'Archivé',
+                                                                'bg-warning text-dark': d.statut === 'Suspendu'
+                                                            }"
+                                                            x-text="d.statut">
+                                                        </span>
+                                                    </td>
+                                                    <td x-text="d.partieAdverseNom
+                                                        ? (d.partieAdverseNom + (d.partieAdversePrenom ? ' ' + d.partieAdversePrenom : ''))
+                                                        : (d.partieAdverseEntreprise ?? '—')">
+                                                    </td>
+                                                    <td>
+                                                        <a :href="`/dossiers/${d.id}`" class="text-muted" @click="close()" title="Ouvrir">
+                                                            <i class="fa fa-arrow-up-right-from-square search-open-icon"></i>
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </template>
+
+        </div>
+    </div>
+</div>
