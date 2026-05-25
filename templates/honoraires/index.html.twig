@@ -43,7 +43,7 @@
                 <tr><th>N°</th><th>Client</th><th>Type</th><th>Date</th><th>Montant TTC</th><th>Payé</th><th>Solde</th><th>Statut</th><th>Actions</th></tr>
             </thead>
             <tbody id="facturesBody">
-                <tr><td colspan="9" class="text-center py-4"><i class="fa fa-spinner fa-spin me-2"></i>Chargement...</td></tr>
+                <tr><td colspan="9" class="text-center py-4 text-muted fst-italic small"><i class="fa fa-spinner fa-spin me-2"></i>Chargement en cours...</td></tr>
             </tbody>
         </table>
     </div>
@@ -66,8 +66,8 @@ async function loadFactures() {
 }
 
 const statutColors = {
-    'En cours': 'bg-primary', 'Payée': 'bg-success', 'Partiellement payée': 'bg-warning text-dark',
-    'Annulée': 'bg-secondary', 'En retard': 'bg-danger'
+    'En cours': 'badge-soft-blue', 'Payée': 'badge-soft-green', 'Partiellement payée': 'badge-soft-orange',
+    'Annulée': 'badge-soft-gray', 'En retard': 'badge-soft-red'
 };
 
 function renderTable(factures) {

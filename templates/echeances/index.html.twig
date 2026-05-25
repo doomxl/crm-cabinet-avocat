@@ -7,7 +7,7 @@
 {% block content %}
 <div x-data="echeances()" x-init="init()">
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h4 class="mb-0 fw-bold"><i class="fa fa-clock text-danger me-2"></i>Échéances</h4>
+    <h4 class="mb-0 fw-bold">Échéances</h4>
 </div>
 
 <!-- Filtres -->
@@ -36,13 +36,16 @@
 
 <div class="card">
     <div class="card-body p-0">
-        <table class="table table-hover mb-0">
+        <table class="table table-hover mb-0 text-nowrap">
             <thead class="table-light">
                 <tr><th>Urgence</th><th>Type</th><th>Dossier</th><th>Date</th><th>Description</th><th>Statut</th><th>Actions</th></tr>
             </thead>
             <tbody>
-                <template x-if="echeancesFiltrees.length === 0">
-                    <tr><td colspan="7" class="text-center py-4 text-muted"><i class="fa fa-check-circle text-success me-2"></i>Aucune échéance</td></tr>
+                <template x-if="loading">
+                    <tr><td colspan="7" class="text-center py-4 text-muted fst-italic small"><i class="fa fa-spinner fa-spin me-2"></i>Chargement en cours...</td></tr>
+                </template>
+                <template x-if="!loading && echeancesFiltrees.length === 0">
+                    <tr><td colspan="7" class="text-center py-4 text-muted"><em>Aucune échéance</em></td></tr>
                 </template>
                 <template x-for="e in echeancesFiltrees" :key="e.id">
                     <tr>
@@ -68,7 +71,7 @@
                             </select>
                         </td>
                         <td>
-                            <button class="btn btn-sm btn-outline-danger" @click="deleteEcheance(e.id)"><i class="fa fa-trash"></i></button>
+                            <button class="btn btn-sm btn-link text-secondary p-1" @click="deleteEcheance(e.id)"><i class="fa fa-trash"></i></button>
                         </td>
                     </tr>
                 </template>
@@ -84,10 +87,13 @@ function echeances() {
     return {
         echeances: [], echeancesFiltrees: [],
         filtreStatut: 'À venir', filtreUrgence: '',
+        loading: true,
 
         async init() {
+            this.loading = true;
             const data = await api.get('/api/echeances');
             if (data.success) { this.echeances = data.data; this.applyFilters(); }
+            this.loading = false;
         },
 
         applyFilters() {

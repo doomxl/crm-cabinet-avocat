@@ -134,6 +134,7 @@
         <h6 class="mb-0 fw-semibold" x-text="labelSemaine()"></h6>
         <button class="btn btn-sm btn-outline-orange" @click="semaineSuivante()"><i class="fa fa-chevron-right"></i></button>
         <button class="btn btn-sm btn-outline-orange" @click="aller(new Date())">Aujourd'hui</button>
+        <span x-show="loading" class="text-muted fst-italic small ms-2"><i class="fa fa-spinner fa-spin me-1"></i>Chargement en cours...</span>
     </div>
 
     <!-- Calendrier semaine -->
@@ -260,7 +261,7 @@ function agenda() {
         rdvs: [], joursSemaine: [], joursMois: [],
         currentWeekStart: null, currentMonthStart: null,
         showForm: false, showEdit: false,
-        vue: 'semaine',
+        vue: 'semaine', loading: true,
         heures: Array.from({length: 17}, (_, i) => i + 6),
         newRdv: {clientId:'', date:new Date().toISOString().split('T')[0], heure:'09:00', duree:60, type:'Consultation', lieu:'Cabinet', notes:''},
         editRdv: {id:null, clientId:'', date:'', heure:'', duree:60, type:'', lieu:'', notes:''},
@@ -318,13 +319,17 @@ function agenda() {
         },
 
         async loadRdvs() {
+            this.loading = true;
             const data = await api.get(`/api/rendezvous?semaine=${this.getSemaineStr()}`);
             if (data.success) this.rdvs = data.data;
+            this.loading = false;
         },
 
         async loadRdvsMois() {
+            this.loading = true;
             const data = await api.get(`/api/rendezvous?mois=${this.getMoisStr()}`);
             if (data.success) this.rdvs = data.data;
+            this.loading = false;
         },
 
         getRdvsForDay(jour) {

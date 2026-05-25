@@ -19,24 +19,24 @@ class EcheanceService
         $jours = $echeance->getJoursRestants();
 
         if ($jours < 0) {
-            return ['niveau' => 'expire', 'couleur' => '#6B7280', 'jours' => $jours, 'texte' => 'Expirée il y a ' . abs($jours) . ' j'];
+            return ['niveau' => 'expire', 'couleur' => '#9CA3AF', 'jours' => $jours, 'texte' => 'Expirée il y a ' . abs($jours) . ' j'];
         }
         if ($jours === 0) {
-            return ['niveau' => 'critique', 'couleur' => '#DC2626', 'jours' => 0, 'texte' => "Aujourd'hui"];
+            return ['niveau' => 'critique', 'couleur' => '#F87171', 'jours' => 0, 'texte' => "Aujourd'hui"];
         }
         if ($jours <= 3) {
-            return ['niveau' => 'critique', 'couleur' => '#DC2626', 'jours' => $jours, 'texte' => 'Dans ' . $jours . ' j'];
+            return ['niveau' => 'critique', 'couleur' => '#F87171', 'jours' => $jours, 'texte' => 'Dans ' . $jours . ' j'];
         }
         if ($jours <= 7) {
-            return ['niveau' => 'urgent', 'couleur' => '#EA580C', 'jours' => $jours, 'texte' => 'Dans ' . $jours . ' j'];
+            return ['niveau' => 'urgent', 'couleur' => '#FDBA74', 'jours' => $jours, 'texte' => 'Dans ' . $jours . ' j'];
         }
         if ($jours <= 14) {
-            return ['niveau' => 'attention', 'couleur' => '#D97706', 'jours' => $jours, 'texte' => 'Dans ' . $jours . ' j'];
+            return ['niveau' => 'attention', 'couleur' => '#FCD34D', 'jours' => $jours, 'texte' => 'Dans ' . $jours . ' j'];
         }
         if ($jours <= 30) {
-            return ['niveau' => 'normal', 'couleur' => '#2563EB', 'jours' => $jours, 'texte' => 'Dans ' . $jours . ' j'];
+            return ['niveau' => 'normal', 'couleur' => '#60A5FA', 'jours' => $jours, 'texte' => 'Dans ' . $jours . ' j'];
         }
-        return ['niveau' => 'lointain', 'couleur' => '#16A34A', 'jours' => $jours, 'texte' => 'Dans ' . $jours . ' j'];
+        return ['niveau' => 'lointain', 'couleur' => '#34D399', 'jours' => $jours, 'texte' => 'Dans ' . $jours . ' j'];
     }
 
     /**
