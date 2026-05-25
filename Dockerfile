@@ -20,4 +20,5 @@ ENV APP_SECRET=changeme
 ENV DATABASE_URL="postgresql://postgres:postgres@database:5432/crm_cabinet?serverVersion=18&charset=utf8"
 
 RUN php bin/console cache:clear --env=prod
+RUN php bin/console asset-map:compile --env=prod
 RUN chmod -R 777 var
