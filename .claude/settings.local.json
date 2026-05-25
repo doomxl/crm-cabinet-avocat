@@ -7,7 +7,9 @@
       "PowerShell(Get-ChildItem \"c:\\\\laragon\\\\www\\\\crm-cabinet-avocat\\\\templates\" -Recurse | Where-Object { $_.Name -match \"acte\" })",
       "Bash(php bin/console doctrine:migrations:migrate --no-interaction)",
       "Bash(php bin/console cache:clear)",
-      "PowerShell(New-Item -ItemType Directory -Force \"C:\\\\laragon\\\\www\\\\crm-cabinet-avocat\\\\templates\\\\partials\\\\base\")"
+      "PowerShell(New-Item -ItemType Directory -Force \"C:\\\\laragon\\\\www\\\\crm-cabinet-avocat\\\\templates\\\\partials\\\\base\")",
+      "Bash(pg_dump --version)",
+      "Read(//c/laragon/**)"
     ]
   }
 }

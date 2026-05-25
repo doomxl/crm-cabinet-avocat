@@ -124,6 +124,9 @@ th { font-size: 0.8rem; font-weight: 500; }
 #topbar .cabinet-name { font-weight: 600; color: var(--navy); font-size: 0.95rem; }
 #topbar .breadcrumb { font-size: 0.8rem; color: var(--text-muted); margin: 0; }
 #topbar .search-bar-wrapper { max-width: 480px; margin: 0 auto; }
+.form-control,
+.form-select { background-color: var(--bg-light) !important; }
+
 #topbar input.form-control { background: var(--bg-input); border-color: var(--border); }
 #topbar input.form-control:focus {
     outline: 1px solid #93c5fd;
@@ -215,6 +218,9 @@ th { font-size: 0.8rem; font-weight: 500; }
 /* Couleur accentuée orange */
 .flash-color { color: var(--orange); }
 
+/* Unpaid balance — orange fixe */
+.flash-orange { color: var(--orange); }
+
 /* Bouton extra-small */
 .btn-xs {
     padding: 0.15rem 0.45rem;
@@ -292,12 +298,32 @@ th { font-size: 0.8rem; font-weight: 500; }
    ============================================================ */
 .btn-outline-orange {
     color: var(--orange);
-    border-color: var(--orange);
+    background: transparent;
+    border: 1px solid var(--orange);
     transition: background 0.15s, color 0.15s;
 }
-.btn-outline-orange:hover {
+.btn-outline-orange:hover,
+.btn-outline-orange:focus {
+    background: var(--orange);
+    border-color: var(--orange);
+    color: var(--white);
+}
+
+.btn-orange {
     background: var(--orange);
     color: var(--white);
+    border-color: var(--orange);
+    transition: background 0.15s, border-color 0.15s;
+}
+.btn-orange:hover {
+    background: #c27a0a;
+    border-color: #c27a0a;
+    color: var(--white);
+}
+.btn-orange:disabled {
+    background: var(--orange);
+    border-color: var(--orange);
+    opacity: 0.65;
 }
 
 /* ============================================================

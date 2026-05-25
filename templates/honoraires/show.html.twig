@@ -9,13 +9,13 @@
 <div x-data="factureDetail({{ facture.id }})" x-init="init()">
 <div class="d-flex justify-content-between align-items-start mb-4">
     <div>
-        <h4 class="fw-bold mb-1"><i class="fa fa-file-invoice-dollar text-success me-2"></i>{{ facture.numero }}</h4>
+        <h4 class="fw-bold mb-1">{{ facture.numero }}</h4>
         <span class="badge {{ facture.statut.badgeClass() }}">{{ facture.statut.label() }}</span>
         <span class="badge bg-light text-dark border ms-1">{{ facture.typeDocument.label() }}</span>
     </div>
     <div class="d-flex gap-2">
-        <a href="/api/factures/{{ facture.id }}/pdf" class="btn btn-sm btn-outline-danger"><i class="fa fa-file-pdf me-1"></i>PDF</a>
-        <a href="/api/factures/{{ facture.id }}/docx" class="btn btn-sm btn-outline-primary"><i class="fa fa-file-word me-1"></i>Word</a>
+        <a href="/api/factures/{{ facture.id }}/pdf" class="btn btn-sm btn-outline-orange"><i class="fa fa-file-pdf me-1"></i>PDF</a>
+        <a href="/api/factures/{{ facture.id }}/docx" class="btn btn-sm btn-outline-orange"><i class="fa fa-file-word me-1"></i>Word</a>
         <a href="{{ path('facture_edit', {id: facture.id}) }}" class="btn btn-sm btn-outline-secondary"><i class="fa fa-pencil me-1"></i>Modifier</a>
     </div>
 </div>
@@ -27,7 +27,7 @@
             <div class="card-body">
                 <dl class="row small mb-0">
                     <dt class="col-5 text-muted">Client</dt>
-                    <dd class="col-7"><a href="/clients/{{ facture.client.id }}" class="text-decoration-none">{{ facture.client.nomComplet }}</a></dd>
+                    <dd class="col-7"><a href="/clients/{{ facture.client.id }}" class="text-decoration-none text-uppercase fw-semibold">{{ facture.client.nomComplet }}</a></dd>
                     {% if facture.dossier %}
                     <dt class="col-5 text-muted">Dossier</dt>
                     <dd class="col-7"><a href="/dossiers/{{ facture.dossier.id }}" class="text-decoration-none">{{ facture.dossier.titre|slice(0,30) }}</a></dd>
@@ -62,11 +62,11 @@
                 {% endif %}
                 <div class="d-flex justify-content-between mb-2">
                     <span class="small text-muted">Payé</span>
-                    <span class="small text-success" x-text="'-' + montantPaye.toLocaleString('fr-FR', {style:'currency',currency:'EUR'})">— €</span>
+                    <span class="small text-dark fw-semibold" x-text="'-' + montantPaye.toLocaleString('fr-FR', {style:'currency',currency:'EUR'})">— €</span>
                 </div>
                 <div class="d-flex justify-content-between border-top pt-2">
-                    <span class="fw-semibold text-danger">Solde dû</span>
-                    <span class="fw-bold text-danger" x-text="soldeRestant.toLocaleString('fr-FR', {style:'currency',currency:'EUR'})">— €</span>
+                    <span class="fw-semibold" style="color:var(--orange)">Solde dû</span>
+                    <span class="fw-bold" style="color:var(--orange)" x-text="soldeRestant.toLocaleString('fr-FR', {style:'currency',currency:'EUR'})">— €</span>
                 </div>
             </div>
         </div>
@@ -77,7 +77,7 @@
         <div class="card mb-3">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <span>Lignes de facturation</span>
-                <button class="btn btn-sm btn-outline-primary" @click="showAddLigne = !showAddLigne"><i class="fa fa-plus me-1"></i>Ajouter</button>
+                <button class="btn btn-sm btn-outline-orange" @click="showAddLigne = !showAddLigne"><i class="fa fa-plus me-1"></i>Ajouter</button>
             </div>
             <div class="card-body p-0" x-show="showAddLigne">
                 <div class="p-3 border-bottom bg-light">
@@ -95,12 +95,12 @@
                 <tbody>
                     <template x-for="l in lignes" :key="l.id">
                         <tr>
-                            <td class="small" x-text="l.description"></td>
+                            <td class="small text-uppercase" x-text="l.description"></td>
                             <td class="small" x-text="l.quantite"></td>
                             <td class="small" x-text="l.prixUnitaire.toLocaleString('fr-FR', {style:'currency',currency:'EUR'})"></td>
                             <td class="small" x-text="l.unite"></td>
                             <td class="small fw-semibold" x-text="l.montantTotal.toLocaleString('fr-FR', {style:'currency',currency:'EUR'})"></td>
-                            <td><button class="btn btn-xs btn-outline-danger" @click="deleteLigne(l.id)"><i class="fa fa-times"></i></button></td>
+                            <td><button class="btn btn-sm btn-link text-secondary p-1" @click="deleteLigne(l.id)"><i class="fa fa-trash"></i></button></td>
                         </tr>
                     </template>
                 </tbody>
@@ -111,7 +111,7 @@
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <span>Paiements</span>
-                <button class="btn btn-sm btn-outline-success" @click="showAddPaiement = !showAddPaiement"><i class="fa fa-plus me-1"></i>Enregistrer paiement</button>
+                <button class="btn btn-sm btn-outline-orange" @click="showAddPaiement = !showAddPaiement"><i class="fa fa-plus me-1"></i>Enregistrer paiement</button>
             </div>
             <div class="card-body p-0" x-show="showAddPaiement">
                 <div class="p-3 border-bottom bg-light">
@@ -131,7 +131,7 @@
                         <div class="col-md-3"><input class="form-control form-control-sm" x-model="newPaiement.reference" placeholder="Référence"></div>
                     </div>
                     <div class="mt-2 text-end">
-                        <button class="btn btn-sm btn-success" @click="addPaiement()">Enregistrer</button>
+                        <button class="btn btn-sm btn-outline-orange" @click="addPaiement()">Enregistrer</button>
                     </div>
                 </div>
             </div>
@@ -147,7 +147,7 @@
                             <td class="small fw-semibold text-success" x-text="p.montant.toLocaleString('fr-FR', {style:'currency',currency:'EUR'})"></td>
                             <td class="small" x-text="p.modeReglement || '—'"></td>
                             <td class="small" x-text="p.reference || '—'"></td>
-                            <td><button class="btn btn-xs btn-outline-danger" @click="deletePaiement(p.id)"><i class="fa fa-times"></i></button></td>
+                            <td><button class="btn btn-sm btn-link text-secondary p-1" @click="deletePaiement(p.id)"><i class="fa fa-trash"></i></button></td>
                         </tr>
                     </template>
                 </tbody>

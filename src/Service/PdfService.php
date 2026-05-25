@@ -30,10 +30,12 @@ class PdfService
     public function genererFacturePdf(Facture $facture, CabinetConfig $config): string
     {
         $html = $this->twig->render('pdf/facture.html.twig', [
-            'facture' => $facture,
-            'config' => $config,
-            'lignes' => $facture->getLignes()->toArray(),
-            'paiements' => $facture->getPaiements()->toArray(),
+            'facture'      => $facture,
+            'config'       => $config,
+            'lignes'       => $facture->getLignes()->toArray(),
+            'paiements'    => $facture->getPaiements()->toArray(),
+            'montantPaye'  => $facture->getMontantPaye(),
+            'soldeRestant' => $facture->getSoldeRestant(),
         ]);
 
         $dompdf = $this->createDompdf();

@@ -18,7 +18,7 @@ enum StatutFactureEnum: string
     public function badgeClass(): string
     {
         return match($this) {
-            self::En_cours => 'badge bg-info text-dark',
+            self::En_cours => 'badge bg-primary',
             self::Payee => 'badge bg-success',
             self::Partiellement_payee => 'badge bg-warning text-dark',
             self::Annulee => 'badge bg-secondary',

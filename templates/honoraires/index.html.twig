@@ -6,7 +6,7 @@
 {% endblock %}
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h4 class="mb-0 fw-bold"><i class="fa fa-file-invoice-dollar text-success me-2"></i>Honoraires &amp; Factures</h4>
+    <h4 class="mb-0 fw-bold">Honoraires &amp; Factures</h4>
     <a href="{{ path('facture_new') }}" class="btn btn-primary"><i class="fa fa-plus me-1"></i>Nouvelle facture</a>
 </div>
 
@@ -48,8 +48,8 @@
         </table>
     </div>
     <div class="card-footer d-flex justify-content-between align-items-center">
-        <span class="small text-muted">Total : <strong id="totalMontant">—</strong></span>
-        <span class="small text-danger">Impayé : <strong id="totalImpaye">—</strong></span>
+        <span id="totalMontantWrapper" class="small text-muted" style="display:none">Total : <strong id="totalMontant" class="fw-semibold">—</strong></span>
+        <span id="totalImpayeWrapper" class="small flash-orange" style="display:none">Impayé : <strong id="totalImpaye" class="fw-semibold">—</strong></span>
     </div>
 </div>
 {% endblock %}
@@ -66,7 +66,7 @@ async function loadFactures() {
 }
 
 const statutColors = {
-    'En cours': 'bg-info text-dark', 'Payée': 'bg-success', 'Partiellement payée': 'bg-warning text-dark',
+    'En cours': 'bg-primary', 'Payée': 'bg-success', 'Partiellement payée': 'bg-warning text-dark',
     'Annulée': 'bg-secondary', 'En retard': 'bg-danger'
 };
 
@@ -75,19 +75,19 @@ function renderTable(factures) {
     if (!factures.length) { tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4 text-muted">Aucune facture</td></tr>'; return; }
     tbody.innerHTML = factures.map(f => `
         <tr>
-            <td><a href="/honoraires/${f.id}" class="text-decoration-none fw-semibold">${f.numero}</a></td>
-            <td class="small">${f.clientNom || '—'}</td>
+            <td><a href="/honoraires/${f.id}" class="text-decoration-none fw-semibold small">${f.numero}</a></td>
+            <td class="small text-uppercase fw-semibold">${f.clientNom || '—'}</td>
             <td class="small">${f.typeDocument}</td>
             <td class="small">${new Date(f.dateEmission).toLocaleDateString('fr-FR')}</td>
-            <td class="small fw-bold">${f.montantTtc.toLocaleString('fr-FR', {style:'currency',currency:'EUR'})}</td>
-            <td class="small text-success">${f.montantPaye.toLocaleString('fr-FR', {style:'currency',currency:'EUR'})}</td>
-            <td class="small ${f.soldeRestant > 0 ? 'text-danger fw-bold' : 'text-muted'}">${f.soldeRestant.toLocaleString('fr-FR', {style:'currency',currency:'EUR'})}</td>
+            <td class="small fw-semibold">${f.montantTtc.toLocaleString('fr-FR', {style:'currency',currency:'EUR'})}</td>
+            <td class="small fw-semibold text-dark">${f.montantPaye.toLocaleString('fr-FR', {style:'currency',currency:'EUR'})}</td>
+            <td class="small fw-semibold" style="color:var(--orange)">${f.soldeRestant.toLocaleString('fr-FR', {style:'currency',currency:'EUR'})}</td>
             <td><span class="badge ${statutColors[f.statut] || 'bg-secondary'}">${f.statut}</span></td>
             <td>
-                <div class="btn-group btn-group-sm">
-                    <a href="/honoraires/${f.id}" class="btn btn-outline-primary"><i class="fa fa-eye"></i></a>
-                    <a href="/api/factures/${f.id}/pdf" class="btn btn-outline-danger" title="PDF"><i class="fa fa-file-pdf"></i></a>
-                    <button class="btn btn-outline-danger" onclick="deleteFacture(${f.id})"><i class="fa fa-trash"></i></button>
+                <div class="d-flex gap-1">
+                    <a href="/honoraires/${f.id}" class="btn btn-sm btn-link text-secondary p-1" title="Voir"><i class="fa fa-eye"></i></a>
+                    <a href="/api/factures/${f.id}/pdf" class="btn btn-sm btn-link text-secondary p-1" title="PDF"><i class="fa fa-file-pdf"></i></a>
+                    <button class="btn btn-sm btn-link text-secondary p-1" title="Supprimer" onclick="deleteFacture(${f.id})"><i class="fa fa-trash"></i></button>
                 </div>
             </td>
         </tr>`).join('');
@@ -96,8 +96,20 @@ function renderTable(factures) {
 function updateTotals(factures) {
     const total = factures.reduce((s, f) => s + f.montantTtc, 0);
     const impaye = factures.reduce((s, f) => s + f.soldeRestant, 0);
-    document.getElementById('totalMontant').textContent = total.toLocaleString('fr-FR', {style:'currency',currency:'EUR'});
-    document.getElementById('totalImpaye').textContent = impaye.toLocaleString('fr-FR', {style:'currency',currency:'EUR'});
+    const totalWrapper = document.getElementById('totalMontantWrapper');
+    const impayeWrapper = document.getElementById('totalImpayeWrapper');
+    if (total > 0) {
+        document.getElementById('totalMontant').textContent = total.toLocaleString('fr-FR', {style:'currency',currency:'EUR'});
+        totalWrapper.style.display = '';
+    } else {
+        totalWrapper.style.display = 'none';
+    }
+    if (impaye > 0) {
+        document.getElementById('totalImpaye').textContent = impaye.toLocaleString('fr-FR', {style:'currency',currency:'EUR'});
+        impayeWrapper.style.display = '';
+    } else {
+        impayeWrapper.style.display = 'none';
+    }
 }
 
 function applyFilters() {
