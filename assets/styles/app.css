@@ -37,6 +37,53 @@
 }
 
 /* ============================================================
+   COULEURS PAR DÉFAUT DES BADGES (palette pastel thème)
+   Ces valeurs sont les fallbacks PHP (enum::couleurDefaut()).
+   La source de vérité est la table cabinet_config (JSONB).
+   Modifier ici n'affecte pas l'app — c'est une référence visuelle.
+   ============================================================ */
+/*
+:root {
+    -- Matières
+    --badge-droit-familial:      #F472B6;
+    --badge-droit-penal:         #F87171;
+    --badge-droit-affaires:      #60A5FA;
+    --badge-droit-social:        #FDBA74;
+    --badge-droit-immobilier:    #34D399;
+    --badge-droit-administratif: #A78BFA;
+    --badge-droit-international: #22D3EE;
+    --badge-autres:              #9CA3AF;
+
+    -- Statuts dossier
+    --badge-dossier-en-cours:    #60A5FA;
+    --badge-dossier-clos:        #9CA3AF;
+    --badge-dossier-suspendu:    #FDBA74;
+    --badge-dossier-archive:     #A78BFA;
+
+    -- Statuts acte généré
+    --badge-acte-brouillon:      #9CA3AF;
+    --badge-acte-en-revision:    #FDBA74;
+    --badge-acte-valide:         #22D3EE;
+    --badge-acte-signe:          #34D399;
+    --badge-acte-archive:        #6B7280;
+
+    -- Statuts honoraires / facture
+    --badge-facture-en-cours:    #60A5FA;
+    --badge-facture-payee:       #34D399;
+    --badge-facture-partiel:     #FDBA74;
+    --badge-facture-annulee:     #9CA3AF;
+    --badge-facture-en-retard:   #F87171;
+
+    -- Conflits
+    --badge-conflit:             #F87171;
+    --badge-ok:                  #34D399;
+
+    -- Texte sur badge coloré
+    --badge-text:                #F8FAFC;
+}
+*/
+
+/* ============================================================
    BASE
    ============================================================ */
 body {
@@ -68,7 +115,7 @@ th { font-size: 0.8rem; font-weight: 500; }
 #sidebar .brand {
     padding: 20px 16px;
     color: var(--white);
-    font-size: 1.1rem;
+    font-size: 0.95rem;
     font-weight: 700;
     border-bottom: 1px solid rgba(255,255,255,0.1);
     text-decoration: none;
@@ -310,10 +357,18 @@ th { font-size: 0.8rem; font-weight: 500; }
     transition: background 0.15s, color 0.15s;
 }
 .btn-outline-orange:hover,
-.btn-outline-orange:focus {
+.btn-outline-orange:focus,
+.btn-outline-orange.active {
     background: var(--orange);
     border-color: var(--orange);
     color: var(--white);
+}
+.btn-outline-orange:disabled,
+.btn-outline-orange.disabled {
+    color: var(--orange);
+    border-color: var(--orange);
+    background: transparent;
+    opacity: 0.5;
 }
 
 .btn-orange {
@@ -346,7 +401,7 @@ th { font-size: 0.8rem; font-weight: 500; }
     min-height: 600px;
     font-family: 'Times New Roman', serif;
     font-size: 1rem;
-    line-height: 1.8;
+    line-height: 0.6;
 }
 .acte-apercu { white-space: pre-wrap; }
 .acte-apercu strong { font-weight: bold; }

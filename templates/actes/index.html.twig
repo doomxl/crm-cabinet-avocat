@@ -8,13 +8,13 @@
 <div x-data="actesPage()" x-init="init()">
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4 class="mb-0 fw-bold">Actes &amp; Modèles</h4>
-    <button class="btn btn-primary" @click="showNewModele = !showNewModele"><i class="fa fa-plus me-1"></i>Nouveau modèle</button>
+    <button class="btn btn-outline-orange" @click="showNewModele = !showNewModele"><i class="fa fa-plus me-1"></i>Nouveau modèle</button>
 </div>
 
 <!-- Formulaire édition modèle -->
 <div class="card mb-3 border-warning" x-show="showEditModele" x-cloak>
     <div class="card-header d-flex justify-content-between align-items-center">
-        <span class="fw-semibold">Modifier : <span class="text-warning" x-text="editingModele?.nom"></span></span>
+        <span class="fw-semibold">Modifier : <span style="color:var(--orange)" x-text="editingModele?.nom"></span></span>
         <button type="button" class="btn btn-sm btn-outline-secondary" @click="showEditVarsPanel = !showEditVarsPanel">
             <i class="fa fa-code me-1"></i><span x-text="showEditVarsPanel ? 'Masquer variables' : 'Variables'"></span>
         </button>
@@ -78,17 +78,17 @@
             <div :class="showEditVarsPanel ? 'col-md-9' : 'col-md-12'">
                 <label class="form-label small text-muted mb-1">Contenu du modèle</label>
                 <div class="d-flex flex-wrap gap-1 align-items-center px-2 py-1 border border-bottom-0 rounded-top bg-light">
-                    <button type="button" class="btn btn-xs btn-outline-secondary fw-bold" @click="mdActionEdit('gras')" title="Gras">G</button>
-                    <button type="button" class="btn btn-xs btn-outline-secondary fst-italic" @click="mdActionEdit('italique')" title="Italique">I</button>
+                    <button type="button" class="btn btn-xs btn-outline-orange fw-bold" @click="mdActionEdit('gras')" title="Gras">G</button>
+                    <button type="button" class="btn btn-xs btn-outline-orange fst-italic" @click="mdActionEdit('italique')" title="Italique">I</button>
                     <div class="vr mx-1"></div>
-                    <button type="button" class="btn btn-xs btn-outline-secondary font-monospace" @click="mdActionEdit('h1')" title="Titre">H1</button>
-                    <button type="button" class="btn btn-xs btn-outline-secondary font-monospace" @click="mdActionEdit('h2')" title="Sous-titre">H2</button>
-                    <button type="button" class="btn btn-xs btn-outline-secondary font-monospace" @click="mdActionEdit('h3')" title="Paragraphe">H3</button>
+                    <button type="button" class="btn btn-xs btn-outline-orange font-monospace" @click="mdActionEdit('h1')" title="Titre">H1</button>
+                    <button type="button" class="btn btn-xs btn-outline-orange font-monospace" @click="mdActionEdit('h2')" title="Sous-titre">H2</button>
+                    <button type="button" class="btn btn-xs btn-outline-orange font-monospace" @click="mdActionEdit('h3')" title="Paragraphe">H3</button>
                     <div class="vr mx-1"></div>
-                    <button type="button" class="btn btn-xs btn-outline-secondary" @click="mdActionEdit('puce')" title="Liste à puces"><i class="fa fa-list-ul"></i></button>
-                    <button type="button" class="btn btn-xs btn-outline-secondary" @click="mdActionEdit('num')" title="Liste numérotée"><i class="fa fa-list-ol"></i></button>
+                    <button type="button" class="btn btn-xs btn-outline-orange" @click="mdActionEdit('puce')" title="Liste à puces"><i class="fa fa-list-ul"></i></button>
+                    <button type="button" class="btn btn-xs btn-outline-orange" @click="mdActionEdit('num')" title="Liste numérotée"><i class="fa fa-list-ol"></i></button>
                     <div class="vr mx-1"></div>
-                    <button type="button" class="btn btn-xs btn-outline-secondary font-monospace" @click="mdActionEdit('hr')" title="Séparateur">—</button>
+                    <button type="button" class="btn btn-xs btn-outline-orange font-monospace" @click="mdActionEdit('hr')" title="Séparateur">—</button>
                 </div>
                 <textarea
                     id="editModeleTextarea"
@@ -99,7 +99,7 @@
         </div>
         <div class="mt-3 text-end">
             <button class="btn btn-sm btn-outline-secondary me-2" @click="showEditModele = false; editingModele = null">Annuler</button>
-            <button class="btn btn-sm btn-warning" @click="saveModele()"><i class="fa fa-save me-1"></i>Enregistrer les modifications</button>
+            <button class="btn btn-sm btn-outline-orange" @click="saveModele()"><i class="fa fa-save me-1"></i>Enregistrer les modifications</button>
         </div>
     </div>
 </div>
@@ -301,7 +301,7 @@ Utilisez le panneau Variables (bouton en haut à droite) pour insérer des varia
                     </div>
                 </div>
                 <div class="mt-2 text-end">
-                    <button class="btn btn-sm btn-primary" @click="genererActe()" :disabled="!generation.dossierId">
+                    <button class="btn btn-sm btn-outline-orange" @click="genererActe()" :disabled="!generation.dossierId">
                         <i class="fa fa-magic me-1"></i>Générer l'acte
                     </button>
                 </div>
@@ -323,7 +323,7 @@ Utilisez le panneau Variables (bouton en haut à droite) pour insérer des varia
                         <div class="flex-grow-1">
                             <div class="d-flex align-items-center gap-2">
                                 <span class="fw-semibold small" x-text="a.nom"></span>
-                                <span class="badge" :class="'bg-' + (statutBadges[a.statut] || 'secondary')" x-text="a.statut" style="font-size:0.65rem;"></span>
+                                <span class="badge" :style="'background:' + (statutColors[a.statut] || '#6c757d')" x-text="a.statut" style="font-size:0.65rem;color:#F8FAFC"></span>
                             </div>
                             <div class="small text-muted" x-text="new Date(a.dateGeneration).toLocaleString('fr-FR') + ' — ' + (a.dossierTitre || '—')"></div>
                         </div>
@@ -342,6 +342,9 @@ Utilisez le panneau Variables (bouton en haut à droite) pour insérer des varia
 {% endblock %}
 
 {% block javascripts %}
+<script>
+window._statutColorsActe = {{ couleurs_statuts_acte|json_encode|raw }};
+</script>
 {% verbatim %}
 <script>
 function actesPage() {
@@ -425,13 +428,7 @@ function actesPage() {
         showEditModele: false, showEditVarsPanel: false,
         editingModele: null,
         editData: { nom: '', categorie: '', contenu: '' },
-        statutBadges: {
-            'Brouillon':   'secondary',
-            'En révision': 'warning',
-            'Validé':      'info',
-            'Signé':       'success',
-            'Archivé':     'dark',
-        },
+        statutColors: window._statutColorsActe,
         selectedModele: null,
         newModele: { nom: '', categorie: '', contenu: '' },
         generation: { dossierId: '', nom: '' },

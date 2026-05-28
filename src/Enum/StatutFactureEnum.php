@@ -26,6 +26,17 @@ enum StatutFactureEnum: string
         };
     }
 
+    public function couleurDefaut(): string
+    {
+        return match($this) {
+            self::En_cours            => '#60A5FA',
+            self::Payee               => '#34D399',
+            self::Partiellement_payee => '#FDBA74',
+            self::Annulee             => '#9CA3AF',
+            self::En_retard           => '#F87171',
+        };
+    }
+
     public static function values(): array
     {
         return array_column(self::cases(), 'value');

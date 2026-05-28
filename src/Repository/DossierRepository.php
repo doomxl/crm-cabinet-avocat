@@ -62,7 +62,10 @@ class DossierRepository extends ServiceEntityRepository
 
         if (empty($tokens)) return [];
 
-        // Recherche DB sur titre, parties adverses et nom client
+        // Extrait un éventuel numéro de dossier (ex: "17", "n°17", "n° 17", "#17")
+        $qNumeric = preg_replace('/[^0-9]/', '', $qNorm);
+
+        // Recherche DB sur titre, parties adverses, nom client et ID
         $qb = $this->createQueryBuilder('d')
             ->leftJoin('d.client', 'c')
             ->addSelect('c');
@@ -75,7 +78,13 @@ class DossierRepository extends ServiceEntityRepository
                      . " OR LOWER(c.nom) LIKE :$p OR LOWER(c.prenom) LIKE :$p)";
             $qb->setParameter($p, '%' . $token . '%');
         }
-        $qb->andWhere(implode(' AND ', $parts));
+
+        $whereClause = '(' . implode(' AND ', $parts) . ')';
+        if ($qNumeric !== '' && is_numeric($qNumeric)) {
+            $whereClause .= ' OR d.id = :qid';
+            $qb->setParameter('qid', (int) $qNumeric);
+        }
+        $qb->andWhere($whereClause);
         $dbResults = $qb->orderBy('d.dateOuverture', 'DESC')->getQuery()->getResult();
 
         // Recherche floue via similar_text()
@@ -112,7 +121,7 @@ class DossierRepository extends ServiceEntityRepository
         ]);
 
         foreach ($tokens as $token) {
-            if (strlen($token) < 3) continue;
+            if (strlen($token) < 3 && !ctype_digit($token)) continue;
             foreach ($fields as $field) {
                 foreach (explode(' ', $field) as $word) {
                     if (strlen($word) < 3) continue;

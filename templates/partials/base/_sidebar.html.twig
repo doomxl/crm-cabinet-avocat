@@ -1,7 +1,9 @@
 <nav id="sidebar">
     <a href="{{ path('dashboard_index') }}" class="brand">
-        <i class="fa fa-scale-balanced flash-color"></i> Cabinet Avocat
+        <i class="fa fa-scale-balanced flash-color"></i> CRM&nbsp;Cabinet&nbsp;Avocat
         <small>CRM {{ app_version }}</small>
+        <small class="mt-1" style="color: #fff"><i>{{ cabinet_config.nom }}</i></small>
+        
     </a>
 
     <div class="nav-section">Principal</div>
@@ -59,5 +61,9 @@
 
     <a href="{{ path('parametres_index') }}" class="nav-link {{ app.request.get('_route') == 'parametres_index' ? 'active' : '' }}">
         <i class="fa fa-gear"></i> Paramètres
+    </a>
+
+    <a href="{{ path('theme_index') }}" class="nav-link {{ app.request.get('_route') == 'theme_index' ? 'active' : '' }}">
+        <i class="fa fa-palette"></i> Thème
     </a>
 </nav>

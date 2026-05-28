@@ -10,7 +10,7 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4 class="mb-0 fw-bold"><!--i class="fa fa-folder-open text-warning me-2"></i-->Dossiers</h4>
-    <a href="{{ path('dossier_new') }}" class="btn btn-primary">
+    <a href="{{ path('dossier_new') }}" class="btn btn-outline-orange">
         <i class="fa fa-plus me-1"></i>Nouveau dossier
     </a>
 </div>
@@ -78,27 +78,12 @@ async function loadDossiers() {
     allDossiers = data.data;
     renderTable(allDossiers);
 }
-/*
-const matiereColors = {
-    'Droit familial':'#EC4899', 'Droit pénal':'#EF4444', 'Droit des affaires':'#1E40AF',
-    'Droit social':'#F97316', 'Droit immobilier':'#059669', 'Droit administratif':'#7C3AED',
-    'Droit international':'#06B6D4', 'Autres':'#6B7280'
-};
-*/
-const matiereColors = {
-    'Droit familial':'#F472B6', 'Droit pénal':'#F87171', 'Droit des affaires':'#60A5FA',
-    'Droit social':'#FDBA74', 'Droit immobilier':'#34D399', 'Droit administratif':'#A78BFA',
-    'Droit international':'#22D3EE', 'Autres':'#9CA3AF'
-};
-
-//const couleursAdoucies = ['#F472B6', '#60A5FA', '#FDBA74', '#34D399', '#A78BFA', '#F87171', '#22D3EE', '#9CA3AF'];
+const matiereColors = {{ couleurs_matieres|json_encode|raw }};
+const statutColors = {{ couleurs_statuts|json_encode|raw }};
 
 function statutBadge(statut) {
-    const cls = {
-        'En cours': 'bg-primary', 'Clos': 'bg-secondary',
-        'Suspendu': 'bg-warning text-dark', 'Archivé': 'bg-dark'
-    };
-    return `<span class="badge ${cls[statut] || 'bg-secondary'}">${statut}</span>`;
+    const color = statutColors[statut] || '#6c757d';
+    return `<span class="badge" style="background:${color};color:#F8FAFC">${statut}</span>`;
 }
 
 function renderTable(dossiers) {

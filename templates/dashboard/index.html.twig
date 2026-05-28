@@ -191,11 +191,7 @@ function dashboard() {
             if (!ctx || !this.statsByMatiere.length) return;
             ctx.removeAttribute('height');
             ctx.height = 180;
-            const colors = ['#EC4899','#1E40AF','#F97316','#059669','#7C3AED','#EF4444','#06B6D4','#6B7280'];
-            // Ta palette d'origine, mais en version moins flashy (tons adoucis / pastel)
-            const couleursAdoucies = ['#F472B6', '#60A5FA', '#FDBA74', '#34D399', '#A78BFA', '#F87171', '#22D3EE', '#9CA3AF'];
-            // Version très pastel / arrière-plans légers
-            const couleursFondsPastel = ['#FCE7F3', '#DBEAFE', '#FFEDD5', '#D1FAE5', '#EDE9FE', '#FEE2E2', '#CFFAFE', '#F3F4F6'];
+            const couleursMatiere = {{ couleurs_matieres|json_encode|raw }};
 
             if (this.chartInstance) this.chartInstance.destroy();
             this.chartInstance = new Chart(ctx, {
@@ -204,7 +200,7 @@ function dashboard() {
                     labels: this.statsByMatiere.map(s => s.matiere || 'Non défini'),
                     datasets: [{
                         data: this.statsByMatiere.map(s => s.total),
-                        backgroundColor: couleursAdoucies,
+                        backgroundColor: this.statsByMatiere.map(s => couleursMatiere[s.matiere] || '#9CA3AF'),
                         borderWidth: 2,
                         borderColor: '#fff',
                     }]

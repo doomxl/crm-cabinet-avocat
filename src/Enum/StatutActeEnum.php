@@ -26,6 +26,17 @@ enum StatutActeEnum: string
         };
     }
 
+    public function couleurDefaut(): string
+    {
+        return match ($this) {
+            self::Brouillon  => '#9CA3AF',
+            self::EnRevision => '#FDBA74',
+            self::Valide     => '#22D3EE',
+            self::Signe      => '#34D399',
+            self::Archive    => '#6B7280',
+        };
+    }
+
     /** @return self[] */
     public function transitionsAutorisees(): array
     {

@@ -10,7 +10,7 @@
 <div class="d-flex justify-content-between align-items-start mb-4">
     <div>
         <h4 class="fw-bold mb-1">{{ facture.numero }}</h4>
-        <span class="badge {{ facture.statut.badgeClass() }}">{{ facture.statut.label() }}</span>
+        <span class="badge" style="background:{{ couleurs_statuts_facture[facture.statut.value] }};color:#F8FAFC">{{ facture.statut.label() }}</span>
         <span class="badge bg-light text-dark border ms-1">{{ facture.typeDocument.label() }}</span>
     </div>
     <div class="d-flex gap-2">

@@ -47,6 +47,18 @@ class CabinetConfig
     #[ORM\Column(name: 'couleurs_matiere', type: 'json')]
     private array $couleursMatiere = [];
 
+    #[ORM\Column(name: 'couleurs_statut', type: 'json')]
+    private array $couleursStatut = [];
+
+    #[ORM\Column(name: 'couleurs_statut_acte', type: 'json')]
+    private array $couleursStatutActe = [];
+
+    #[ORM\Column(name: 'couleurs_statut_facture', type: 'json')]
+    private array $couleursStatutFacture = [];
+
+    #[ORM\Column(name: 'couleurs_conflit', type: 'json')]
+    private array $couleursConflit = [];
+
     #[ORM\Column(name: 'taux_horaire_defaut', type: 'decimal', precision: 10, scale: 2)]
     private string $tauxHoraireDefaut = '150.00';
 
@@ -98,6 +110,14 @@ class CabinetConfig
     public function setAvocatNumero(?string $avocatNumero): static { $this->avocatNumero = $avocatNumero; return $this; }
     public function getCouleursMatiere(): array { return $this->couleursMatiere; }
     public function setCouleursMatiere(array $couleursMatiere): static { $this->couleursMatiere = $couleursMatiere; return $this; }
+    public function getCouleursStatut(): array { return $this->couleursStatut; }
+    public function setCouleursStatut(array $couleursStatut): static { $this->couleursStatut = $couleursStatut; return $this; }
+    public function getCouleursStatutActe(): array { return $this->couleursStatutActe; }
+    public function setCouleursStatutActe(array $couleursStatutActe): static { $this->couleursStatutActe = $couleursStatutActe; return $this; }
+    public function getCouleursStatutFacture(): array { return $this->couleursStatutFacture; }
+    public function setCouleursStatutFacture(array $couleursStatutFacture): static { $this->couleursStatutFacture = $couleursStatutFacture; return $this; }
+    public function getCouleursConflit(): array { return $this->couleursConflit; }
+    public function setCouleursConflit(array $couleursConflit): static { $this->couleursConflit = $couleursConflit; return $this; }
     public function getTauxHoraireDefaut(): string { return $this->tauxHoraireDefaut; }
     public function setTauxHoraireDefaut(string $tauxHoraireDefaut): static { $this->tauxHoraireDefaut = $tauxHoraireDefaut; return $this; }
     public function getUpdatedAt(): \DateTimeImmutable { return $this->updatedAt; }
@@ -117,6 +137,10 @@ class CabinetConfig
             'avocatBarreau' => $this->avocatBarreau,
             'avocatNumero' => $this->avocatNumero,
             'couleursMatiere' => $this->couleursMatiere,
+            'couleursStatut'     => $this->couleursStatut,
+            'couleursStatutActe'    => $this->couleursStatutActe,
+            'couleursStatutFacture' => $this->couleursStatutFacture,
+            'couleursConflit'       => $this->couleursConflit,
             'tauxHoraireDefaut' => (float)$this->tauxHoraireDefaut,
             'updatedAt' => $this->updatedAt->format('Y-m-d H:i:s'),
         ];

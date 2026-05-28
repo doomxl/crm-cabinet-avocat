@@ -22,9 +22,9 @@
         </div>
         <div class="d-flex gap-2 align-items-center">
             {% if dossier.matiere %}
-            <span class="badge" style="background:{{ dossier.matiere.couleur() }}">{{ dossier.matiere.label() }}</span>
+            <span class="badge" style="background:{{ couleurs_matieres[dossier.matiere.value] }};color:#F8FAFC">{{ dossier.matiere.label() }}</span>
             {% endif %}
-            <span class="badge {{ dossier.statut.badgeClass() }}">{{ dossier.statut.label() }}</span>
+            <span class="badge" style="background:{{ couleurs_statuts[dossier.statut.value] }};color:#F8FAFC">{{ dossier.statut.label() }}</span>
         </div>
     </div>
     <div class="d-flex gap-2">

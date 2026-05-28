@@ -20,15 +20,17 @@ class PdfService
     private function createDompdf(): Dompdf
     {
         $options = new Options();
-        $options->set('defaultFont', 'Helvetica');
+        $options->set('defaultFont', 'DejaVu Serif');
         $options->set('isHtml5ParserEnabled', true);
         $options->set('isRemoteEnabled', false);
-        $options->set('chroot', realpath(''));
+        $options->set('chroot', dirname(__DIR__, 2));
         return new Dompdf($options);
     }
 
     public function genererFacturePdf(Facture $facture, CabinetConfig $config): string
     {
+        $fontPath = dirname(__DIR__, 2) . '/public/fonts';
+
         $html = $this->twig->render('pdf/facture.html.twig', [
             'facture'      => $facture,
             'config'       => $config,
@@ -36,6 +38,7 @@ class PdfService
             'paiements'    => $facture->getPaiements()->toArray(),
             'montantPaye'  => $facture->getMontantPaye(),
             'soldeRestant' => $facture->getSoldeRestant(),
+            'fontPath'     => $fontPath,
         ]);
 
         $dompdf = $this->createDompdf();
@@ -50,10 +53,13 @@ class PdfService
     {
         $contenuResolu = $this->templateService->markdownVersHtml($acte->getContenu() ?? '');
 
+        $fontPath = dirname(__DIR__, 2) . '/public/fonts';
+
         $html = $this->twig->render('pdf/acte.html.twig', [
             'acte'          => $acte,
             'config'        => $config,
             'contenuResolu' => $contenuResolu,
+            'fontPath'      => $fontPath,
         ]);
 
         $dompdf = $this->createDompdf();

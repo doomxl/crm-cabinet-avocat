@@ -31,6 +31,10 @@ class ClientRepository extends ServiceEntityRepository
 
         if (empty($tokens)) return [];
 
+        // Normalisation téléphone : supprime tout sauf les chiffres
+        $qPhoneNorm  = preg_replace('/\D/', '', $qNorm);
+        $isPhoneSearch = strlen($qPhoneNorm) >= 4;
+
         // Recherche DB avec LOWER() LIKE (insensible à la casse)
         $qb = $this->createQueryBuilder('c');
         $parts = [];
@@ -44,14 +48,24 @@ class ClientRepository extends ServiceEntityRepository
         $qb->andWhere(implode(' AND ', $parts));
         $dbResults = $qb->orderBy('c.nom', 'ASC')->getQuery()->getResult();
 
-        // Recherche floue (tolérance aux fautes) via similar_text()
+        // Recherche floue + téléphone normalisé
         $fuzzyAdded = [];
-        if (count($dbResults) < $limit) {
+        if (count($dbResults) < $limit || $isPhoneSearch) {
             $all   = $this->createQueryBuilder('c')->orderBy('c.nom', 'ASC')->setMaxResults(500)->getQuery()->getResult();
             $dbIds = array_flip(array_map(fn($c) => $c->getId(), $dbResults));
 
             foreach ($all as $client) {
                 if (isset($dbIds[$client->getId()])) continue;
+
+                // Match téléphone normalisé (ignore espaces, tirets, points)
+                if ($isPhoneSearch) {
+                    $storedPhone = preg_replace('/\D/', '', mb_strtolower((string) $client->getTelephone()));
+                    if ($storedPhone !== '' && (str_contains($storedPhone, $qPhoneNorm) || str_contains($qPhoneNorm, $storedPhone))) {
+                        $fuzzyAdded[] = $client;
+                        continue;
+                    }
+                }
+
                 if ($this->fuzzyMatchClient($client, $tokens)) {
                     $fuzzyAdded[] = $client;
                 }

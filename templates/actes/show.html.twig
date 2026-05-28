@@ -10,27 +10,27 @@
 
 <div class="d-flex justify-content-between align-items-start mb-4">
     <div>
-        <h4 class="fw-bold mb-1"><i class="fa fa-file-contract text-primary me-2"></i><span x-text="acteNom">{{ acte.nom }}</span></h4>
+        <h4 class="fw-bold mb-1"><span x-text="acteNom">{{ acte.nom }}</span></h4>
         <div class="d-flex align-items-center gap-2 mt-1 flex-wrap">
             <span class="small text-muted">Généré le {{ acte.dateGeneration|date('d/m/Y à H:i') }}</span>
             {% if acte.dossier %}
             <span class="badge bg-light text-dark border">
-                <i class="fa fa-folder me-1"></i>{{ acte.dossier.titre|slice(0,40) }}
+                <i class="fa fa-folder me-1 flash-orange"></i>{{ acte.dossier.titre|slice(0,40) }}
             </span>
             {% endif %}
             <!-- Badge statut -->
-            <span class="badge" :class="'bg-' + statutConfig[statut]?.badge" x-text="statut"></span>
+            <span class="badge" :style="'background:' + (statutColors[statut] || '#6c757d') + ';color:#F8FAFC'" x-text="statut"></span>
             <!-- Transitions -->
             <template x-if="statutConfig[statut]?.transitions.length > 0">
                 <div class="dropdown">
-                    <button class="btn btn-xs btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                    <button class="btn btn-xs btn-outline-orange dropdown-toggle" data-bs-toggle="dropdown">
                         Changer le statut
                     </button>
-                    <ul class="dropdown-menu dropdown-menu-sm">
+                    <ul class="dropdown-menu dropdown-menu-sm" style="border-color:var(--orange)">
                         <template x-for="t in statutConfig[statut].transitions" :key="t">
                             <li>
                                 <button class="dropdown-item small" @click="changerStatut(t)">
-                                    <span class="badge me-1" :class="'bg-' + statutConfig[t]?.badge" x-text="t"></span>
+                                    <span class="badge me-1" :style="'background:' + (statutColors[t] || '#6c757d') + ';color:#F8FAFC'" x-text="t"></span>
                                 </button>
                             </li>
                         </template>
@@ -43,13 +43,13 @@
         <button class="btn btn-sm btn-outline-secondary" @click="toggleVariables = !toggleVariables">
             <i class="fa fa-code me-1"></i>Variables
         </button>
-        <button class="btn btn-sm btn-outline-success" @click="sauvegarder()" :disabled="saving">
+        <button class="btn btn-sm btn-outline-orange" @click="sauvegarder()" :disabled="saving">
             <i class="fa fa-save me-1"></i><span x-text="saving ? 'Enregistrement...' : 'Enregistrer'"></span>
         </button>
-        <a href="/api/actes-generes/{{ acte.id }}/pdf" class="btn btn-sm btn-outline-danger">
+        <a href="/api/actes-generes/{{ acte.id }}/pdf" class="btn btn-sm btn-outline-orange">
             <i class="fa fa-file-pdf me-1"></i>PDF
         </a>
-        <a href="/api/actes-generes/{{ acte.id }}/docx" class="btn btn-sm btn-outline-primary">
+        <a href="/api/actes-generes/{{ acte.id }}/docx" class="btn btn-sm btn-outline-orange">
             <i class="fa fa-file-word me-1"></i>Word
         </a>
     </div>
@@ -61,7 +61,7 @@
         <div class="card h-100">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <span class="small fw-semibold">Variables disponibles</span>
-                <button class="btn btn-xs btn-outline-secondary" @click="toggleVariables = false">
+                <button class="btn btn-xs btn-outline-orange" @click="toggleVariables = false">
                     <i class="fa fa-times"></i>
                 </button>
             </div>
@@ -151,29 +151,28 @@
                 <div class="d-flex gap-2 align-items-center">
                     <span class="small text-muted" x-text="compteurMots + ' mots'"></span>
                     <div class="btn-group btn-group-sm">
-                        <button class="btn btn-outline-secondary" :class="modeAffichage === 'editeur' ? 'active' : ''" @click="modeAffichage = 'editeur'">
+                        <button class="btn btn-outline-orange" :class="modeAffichage === 'editeur' ? 'active' : ''" @click="modeAffichage = 'editeur'">
                             <i class="fa fa-edit me-1"></i>Éditeur
                         </button>
-                        <button class="btn btn-outline-secondary" :class="modeAffichage === 'apercu' ? 'active' : ''" @click="basculerApercu()">
+                        <button class="btn btn-outline-orange" :class="modeAffichage === 'apercu' ? 'active' : ''" @click="basculerApercu()">
                             <i class="fa fa-eye me-1"></i>Aperçu
-                            {% if acte.dossier %}<span class="badge bg-success ms-1" style="font-size:0.6rem;">réel</span>{% endif %}
                         </button>
                     </div>
                 </div>
             </div>
             <!-- Barre markdown -->
             <div class="d-flex flex-wrap gap-1 align-items-center px-3 py-2 border-bottom bg-light" x-show="modeAffichage === 'editeur'">
-                <button type="button" class="btn btn-xs btn-outline-secondary fw-bold" @click="mdAction('gras')" title="Gras (**texte**)">G</button>
-                <button type="button" class="btn btn-xs btn-outline-secondary fst-italic" @click="mdAction('italique')" title="Italique (*texte*)">I</button>
+                <button type="button" class="btn btn-xs btn-outline-orange fw-bold" @click="mdAction('gras')" title="Gras (**texte**)">G</button>
+                <button type="button" class="btn btn-xs btn-outline-orange fst-italic" @click="mdAction('italique')" title="Italique (*texte*)">I</button>
                 <div class="vr mx-1"></div>
-                <button type="button" class="btn btn-xs btn-outline-secondary font-monospace" @click="mdAction('h1')" title="Titre (# ...)">H1</button>
-                <button type="button" class="btn btn-xs btn-outline-secondary font-monospace" @click="mdAction('h2')" title="Sous-titre (## ...)">H2</button>
-                <button type="button" class="btn btn-xs btn-outline-secondary font-monospace" @click="mdAction('h3')" title="Paragraphe (### ...)">H3</button>
+                <button type="button" class="btn btn-xs btn-outline-orange font-monospace" @click="mdAction('h1')" title="Titre (# ...)">H1</button>
+                <button type="button" class="btn btn-xs btn-outline-orange font-monospace" @click="mdAction('h2')" title="Sous-titre (## ...)">H2</button>
+                <button type="button" class="btn btn-xs btn-outline-orange font-monospace" @click="mdAction('h3')" title="Paragraphe (### ...)">H3</button>
                 <div class="vr mx-1"></div>
-                <button type="button" class="btn btn-xs btn-outline-secondary" @click="mdAction('puce')" title="Liste à puces (- item)"><i class="fa fa-list-ul"></i></button>
-                <button type="button" class="btn btn-xs btn-outline-secondary" @click="mdAction('num')" title="Liste numérotée (1. item)"><i class="fa fa-list-ol"></i></button>
+                <button type="button" class="btn btn-xs btn-outline-orange" @click="mdAction('puce')" title="Liste à puces (- item)"><i class="fa fa-list-ul"></i></button>
+                <button type="button" class="btn btn-xs btn-outline-orange" @click="mdAction('num')" title="Liste numérotée (1. item)"><i class="fa fa-list-ol"></i></button>
                 <div class="vr mx-1"></div>
-                <button type="button" class="btn btn-xs btn-outline-secondary font-monospace" @click="mdAction('hr')" title="Séparateur (---)">—</button>
+                <button type="button" class="btn btn-xs btn-outline-orange font-monospace" @click="mdAction('hr')" title="Séparateur (---)">—</button>
                 <span class="ms-auto text-muted font-monospace" style="font-size:0.62rem;"># Titre &nbsp;## Sous-titre &nbsp;### Paragraphe &nbsp;**gras** &nbsp;*italique*</span>
             </div>
 
@@ -248,12 +247,14 @@ function acteEditor(acteId, dossierId, statutInitial) {
         compteurMots: 0,
         statut: statutInitial || 'Brouillon',
 
+        statutColors: {{ couleurs_statuts_acte|json_encode|raw }},
+
         statutConfig: {
-            'Brouillon':   { badge: 'secondary', transitions: ['En révision', 'Validé'] },
-            'En révision': { badge: 'warning',   transitions: ['Validé', 'Brouillon'] },
-            'Validé':      { badge: 'info',      transitions: ['Signé', 'En révision'] },
-            'Signé':       { badge: 'success',   transitions: ['Archivé'] },
-            'Archivé':     { badge: 'dark',      transitions: [] },
+            'Brouillon':   { transitions: ['En révision', 'Validé'] },
+            'En révision': { transitions: ['Validé', 'Brouillon'] },
+            'Validé':      { transitions: ['Signé', 'En révision'] },
+            'Signé':       { transitions: ['Archivé'] },
+            'Archivé':     { transitions: [] },
         },
 
         groupesVariables: [

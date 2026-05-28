@@ -29,6 +29,16 @@ enum StatutDossierEnum: string
         };
     }
 
+    public function couleurDefaut(): string
+    {
+        return match($this) {
+            self::En_cours => '#60A5FA',
+            self::Clos     => '#9CA3AF',
+            self::Suspendu => '#FDBA74',
+            self::Archive  => '#A78BFA',
+        };
+    }
+
     public static function values(): array
     {
         return array_column(self::cases(), 'value');
