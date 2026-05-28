@@ -21,6 +21,8 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_INITDB_ARGS: "--auth-host=md5"
+      POSTGRES_HOST_AUTH_METHOD: md5
     volumes:
       - crm_pg_data:/var/lib/postgresql
     networks:
@@ -32,12 +34,11 @@ services:
       retries: 10
       start_period: 10s
 
-  phppgadmin:
-    image: dockage/phppgadmin:latest
+  adminer:
+    image: adminer:latest
     restart: always
     environment:
-      - PHP_PG_ADMIN_SERVER_HOST=database
-      - PHP_PG_ADMIN_SERVER_PORT=5432
+      ADMINER_DEFAULT_SERVER: database
     networks:
       - gateway_net
 
