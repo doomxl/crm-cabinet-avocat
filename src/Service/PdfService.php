@@ -17,19 +17,24 @@ class PdfService
         private readonly TemplateMoteurService $templateService,
     ) {}
 
+    private function projectRoot(): string
+    {
+        return str_replace('\\', '/', dirname(__DIR__, 2));
+    }
+
     private function createDompdf(): Dompdf
     {
         $options = new Options();
-        $options->set('defaultFont', 'DejaVu Serif');
+        $options->set('defaultFont', 'Arial');
         $options->set('isHtml5ParserEnabled', true);
         $options->set('isRemoteEnabled', false);
-        $options->set('chroot', dirname(__DIR__, 2));
+        $options->set('chroot', $this->projectRoot());
         return new Dompdf($options);
     }
 
     public function genererFacturePdf(Facture $facture, CabinetConfig $config): string
     {
-        $fontPath = dirname(__DIR__, 2) . '/public/fonts';
+        $fontPath = $this->projectRoot() . '/public/fonts';
 
         $html = $this->twig->render('pdf/facture.html.twig', [
             'facture'      => $facture,
@@ -53,7 +58,7 @@ class PdfService
     {
         $contenuResolu = $this->templateService->markdownVersHtml($acte->getContenu() ?? '');
 
-        $fontPath = dirname(__DIR__, 2) . '/public/fonts';
+        $fontPath = $this->projectRoot() . '/public/fonts';
 
         $html = $this->twig->render('pdf/acte.html.twig', [
             'acte'          => $acte,

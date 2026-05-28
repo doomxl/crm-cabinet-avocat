@@ -54,12 +54,6 @@ class ThemeController extends AbstractController
             'defaut'  => $defaut,
         ], array_keys($defaultsConflit), $defaultsConflit);
 
-        return $this->render('theme/index.html.twig', [
-            'matieres'       => $matieres,
-            'statuts'        => $statuts,
-            'statutsActe'    => $statutsActe,
-            'statutsFacture' => $statutsFacture,
-            'conflits'       => $conflits,
-        ]);
+        return $this->redirectToRoute('parametres_index', [], 301);
     }
 }

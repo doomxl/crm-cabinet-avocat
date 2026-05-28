@@ -6,99 +6,254 @@
 {% endblock %}
 
 {% block content %}
-<div x-data="parametresPage()" x-init="init()">
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h4 class="mb-0 fw-bold"><i class="fa fa-gear text-primary me-2"></i>Paramètres du cabinet</h4>
-    <button class="btn btn-success" @click="sauvegarder()" :disabled="saving">
-        <i class="fa fa-save me-1"></i>
-        <span x-text="saving ? 'Enregistrement...' : 'Enregistrer'"></span>
-    </button>
+    <h4 class="mb-0 fw-bold"><i class="fa fa-gear me-2" style="color:var(--orange)"></i>Paramètres</h4>
 </div>
 
-<div class="row g-4">
+<ul class="nav nav-tabs mb-4" id="parametresTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="cabinet-tab" data-bs-toggle="tab" data-bs-target="#cabinet-pane" type="button" role="tab">
+            <i class="fa fa-building me-1"></i> Paramètres du cabinet
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="theme-tab" data-bs-toggle="tab" data-bs-target="#theme-pane" type="button" role="tab">
+            <i class="fa fa-palette me-1"></i> Thème
+        </button>
+    </li>
+</ul>
 
-    <!-- Colonne gauche -->
-    <div class="col-lg-6">
+<div class="tab-content" id="parametresTabsContent">
 
-        <!-- Informations du cabinet -->
-        <div class="card mb-4">
-            <div class="card-header fw-semibold"><i class="fa fa-building me-2 text-primary"></i>Informations du cabinet</div>
-            <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-12">
-                        <label class="form-label small fw-semibold">Nom du cabinet <span class="text-danger">*</span></label>
-                        <input class="form-control" x-model="form.nom" placeholder="Cabinet Maître Dupont">
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label small fw-semibold">Adresse</label>
-                        <input class="form-control" x-model="form.adresse" placeholder="12 rue de la Justice">
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label small fw-semibold">Code postal</label>
-                        <input class="form-control" x-model="form.codePostal" placeholder="75001">
-                    </div>
-                    <div class="col-md-9">
-                        <label class="form-label small fw-semibold">Ville</label>
-                        <input class="form-control" x-model="form.ville" placeholder="Paris">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label small fw-semibold">Téléphone</label>
-                        <input class="form-control" x-model="form.telephone" placeholder="01 23 45 67 89">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label small fw-semibold">Email</label>
-                        <input type="email" class="form-control" x-model="form.email" placeholder="contact@cabinet.fr">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label small fw-semibold">SIRET</label>
-                        <input class="form-control" x-model="form.siret" placeholder="xxx xxx xxx xxxxx">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label small fw-semibold">Taux horaire par défaut (€)</label>
-                        <input type="number" class="form-control" x-model="form.tauxHoraireDefaut" min="0" step="5" placeholder="150">
+    {# ── Tab 1 : Paramètres du cabinet ── #}
+    <div class="tab-pane fade show active" id="cabinet-pane" role="tabpanel" aria-labelledby="cabinet-tab">
+    <div x-data="parametresPage()" x-init="init()">
+
+        <div class="d-flex justify-content-end mb-3">
+            <button class="btn btn-outline-orange" @click="sauvegarder()" :disabled="saving">
+                <i class="fa fa-save me-1"></i>
+                <span x-text="saving ? 'Enregistrement...' : 'Enregistrer'"></span>
+            </button>
+        </div>
+
+        <div class="row g-4">
+
+            <div class="col-lg-6">
+                <div class="card mb-4">
+                    <div class="card-header fw-semibold"><i class="fa fa-building me-2" style="color:var(--orange)"></i>Informations du cabinet</div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label small fw-semibold">Nom du cabinet <span class="text-danger">*</span></label>
+                                <input class="form-control" x-model="form.nom" placeholder="Cabinet Maître Dupont">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-semibold">Adresse</label>
+                                <input class="form-control" x-model="form.adresse" placeholder="12 rue de la Justice">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-semibold">Code postal</label>
+                                <input class="form-control" x-model="form.codePostal" placeholder="75001">
+                            </div>
+                            <div class="col-md-9">
+                                <label class="form-label small fw-semibold">Ville</label>
+                                <input class="form-control" x-model="form.ville" placeholder="Paris">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">Téléphone</label>
+                                <input class="form-control" x-model="form.telephone" placeholder="01 23 45 67 89">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">Email</label>
+                                <input type="email" class="form-control" x-model="form.email" placeholder="contact@cabinet.fr">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">SIRET</label>
+                                <input class="form-control" x-model="form.siret" placeholder="xxx xxx xxx xxxxx">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">Taux horaire par défaut (€)</label>
+                                <input type="number" class="form-control" x-model="form.tauxHoraireDefaut" min="0" step="5" placeholder="150">
+                            </div>
+                        </div>
                     </div>
                 </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="card mb-4">
+                    <div class="card-header fw-semibold"><i class="fa fa-user-tie me-2" style="color:var(--orange)"></i>Avocat titulaire</div>
+                    <div class="card-body">
+                        <p class="small text-muted mb-3">Ces informations sont utilisées dans la génération des actes (<code>{{ '{{avocat_nom}}' }}</code>, <code>{{ '{{avocat_barreau}}' }}</code>, <code>{{ '{{avocat_numero}}' }}</code>).</p>
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label small fw-semibold">Nom complet de l'avocat</label>
+                                <input class="form-control" x-model="form.avocatNom" placeholder="Maître Jean Dupont">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">Barreau</label>
+                                <input class="form-control" x-model="form.avocatBarreau" placeholder="Paris">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">N° de l'ordre</label>
+                                <input class="form-control" x-model="form.avocatNumero" placeholder="P12345">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header fw-semibold"><i class="fa fa-eye me-2 text-muted"></i>Aperçu signature dans les actes</div>
+                    <div class="card-body">
+                        <div class="border rounded p-3 bg-light font-monospace apercu-signature" x-text="apercuSignature"></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    </div>
+
+    {# ── Tab 2 : Thème ── #}
+    <div class="tab-pane fade" id="theme-pane" role="tabpanel" aria-labelledby="theme-tab">
+    <div x-data="themePage()" x-init="init()">
+
+        <div class="row g-3">
+
+            <div class="col-lg-6 d-flex flex-column gap-3">
+
+                <div class="card">
+                    <div class="card-header fw-semibold d-flex justify-content-between align-items-center py-2">
+                        <span class="small"><i class="fa fa-palette me-2 text-dark"></i>Couleurs des matières</span>
+                        <div class="d-flex gap-1">
+                            <button class="btn btn-xs btn-outline-secondary" @click="reinitialiserMatieres()" data-bs-toggle="tooltip" title="Réinitialiser aux couleurs par défaut" x-init="new bootstrap.Tooltip($el)"><i class="fa fa-rotate-left"></i></button>
+                            <button class="btn btn-xs btn-outline-orange" @click="sauvegarderMatieres()" :disabled="savingMatieres">
+                                <i class="fa fa-floppy-disk flash-orange"></i>
+                                <span x-text="savingMatieres ? '...' : 'Enregistrer'"></span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body py-2">
+                        <div class="row g-2">
+                            <template x-for="m in matieres" :key="m.label">
+                                <div class="col-6">
+                                    <div class="d-flex align-items-center gap-1 p-1 rounded border bg-light">
+                                        <input type="color" class="form-control form-control-color flex-shrink-0"
+                                               x-model="m.couleur" style="width:26px;height:26px;padding:1px;cursor:pointer;">
+                                        <span class="small" x-text="m.label"></span>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header fw-semibold d-flex justify-content-between align-items-center py-2">
+                        <span class="small"><i class="fa fa-file-contract me-2 text-dark"></i>Statuts d'actes générés</span>
+                        <div class="d-flex gap-1">
+                            <button class="btn btn-xs btn-outline-secondary" @click="reinitialiserStatutsActe()" data-bs-toggle="tooltip" title="Réinitialiser aux couleurs par défaut" x-init="new bootstrap.Tooltip($el)"><i class="fa fa-rotate-left"></i></button>
+                            <button class="btn btn-xs btn-outline-orange" @click="sauvegarderStatutsActe()" :disabled="savingStatutsActe">
+                                <i class="fa fa-floppy-disk flash-orange"></i> <span x-text="savingStatutsActe ? '...' : 'Enregistrer'"></span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body py-2">
+                        <div class="row g-2">
+                            <template x-for="s in statutsActe" :key="s.label">
+                                <div class="col-6">
+                                    <div class="d-flex align-items-center gap-1 p-1 rounded border bg-light">
+                                        <input type="color" class="form-control form-control-color flex-shrink-0" x-model="s.couleur" style="width:26px;height:26px;padding:1px;cursor:pointer;">
+                                        <span class="badge" :style="'background:' + s.couleur" x-text="s.label" style="font-size:0.65rem;color:#F8FAFC"></span>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="col-lg-6 d-flex flex-column gap-3">
+
+                <div class="card">
+                    <div class="card-header fw-semibold d-flex justify-content-between align-items-center py-2">
+                        <span class="small"><i class="fa fa-tag me-2 text-dark"></i>Statuts de dossier</span>
+                        <div class="d-flex gap-1">
+                            <button class="btn btn-xs btn-outline-secondary" @click="reinitialiserStatuts()" data-bs-toggle="tooltip" title="Réinitialiser aux couleurs par défaut" x-init="new bootstrap.Tooltip($el)"><i class="fa fa-rotate-left"></i></button>
+                            <button class="btn btn-xs btn-outline-orange" @click="sauvegarderStatuts()" :disabled="savingStatuts">
+                                <i class="fa fa-floppy-disk flash-orange"></i> <span x-text="savingStatuts ? '...' : 'Enregistrer'"></span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body py-2">
+                        <div class="row g-2">
+                            <template x-for="s in statuts" :key="s.label">
+                                <div class="col-6">
+                                    <div class="d-flex align-items-center gap-1 p-1 rounded border bg-light">
+                                        <input type="color" class="form-control form-control-color flex-shrink-0" x-model="s.couleur" style="width:26px;height:26px;padding:1px;cursor:pointer;">
+                                        <span class="badge" :style="'background:' + s.couleur" x-text="s.label" style="font-size:0.65rem;color:#F8FAFC"></span>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header fw-semibold d-flex justify-content-between align-items-center py-2">
+                        <span class="small"><i class="fa fa-file-invoice-dollar me-2 text-dark"></i>Statuts d'honoraires</span>
+                        <div class="d-flex gap-1">
+                            <button class="btn btn-xs btn-outline-secondary" @click="reinitialiserStatutsFacture()" data-bs-toggle="tooltip" title="Réinitialiser aux couleurs par défaut" x-init="new bootstrap.Tooltip($el)"><i class="fa fa-rotate-left"></i></button>
+                            <button class="btn btn-xs btn-outline-orange" @click="sauvegarderStatutsFacture()" :disabled="savingStatutsFacture">
+                                <i class="fa fa-floppy-disk flash-orange"></i> <span x-text="savingStatutsFacture ? '...' : 'Enregistrer'"></span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body py-2">
+                        <div class="row g-2">
+                            <template x-for="s in statutsFacture" :key="s.label">
+                                <div class="col-6">
+                                    <div class="d-flex align-items-center gap-1 p-1 rounded border bg-light">
+                                        <input type="color" class="form-control form-control-color flex-shrink-0" x-model="s.couleur" style="width:26px;height:26px;padding:1px;cursor:pointer;">
+                                        <span class="badge" :style="'background:' + s.couleur" x-text="s.label" style="font-size:0.65rem;color:#F8FAFC"></span>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header fw-semibold d-flex justify-content-between align-items-center py-2">
+                        <span class="small"><i class="fa fa-bolt-lightning me-2 text-dark"></i>Badges de conflits</span>
+                        <div class="d-flex gap-1">
+                            <button class="btn btn-xs btn-outline-secondary" @click="reinitialiserConflits()" data-bs-toggle="tooltip" title="Réinitialiser aux couleurs par défaut" x-init="new bootstrap.Tooltip($el)"><i class="fa fa-rotate-left"></i></button>
+                            <button class="btn btn-xs btn-outline-orange" @click="sauvegarderConflits()" :disabled="savingConflits">
+                                <i class="fa fa-floppy-disk flash-orange"></i> <span x-text="savingConflits ? '...' : 'Enregistrer'"></span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body py-2">
+                        <div class="row g-2">
+                            <template x-for="c in conflits" :key="c.label">
+                                <div class="col-6">
+                                    <div class="d-flex align-items-center gap-1 p-1 rounded border bg-light">
+                                        <input type="color" class="form-control form-control-color flex-shrink-0" x-model="c.couleur" style="width:26px;height:26px;padding:1px;cursor:pointer;">
+                                        <span class="badge" :style="'background:' + c.couleur" x-text="c.label" style="font-size:0.65rem;color:#F8FAFC"></span>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
 
     </div>
-
-    <!-- Colonne droite -->
-    <div class="col-lg-6">
-
-        <!-- Informations de l'avocat -->
-        <div class="card mb-4">
-            <div class="card-header fw-semibold"><i class="fa fa-user-tie me-2 text-primary"></i>Avocat titulaire</div>
-            <div class="card-body">
-                <p class="small text-muted mb-3">Ces informations sont utilisées dans la génération des actes (<code>{{ '{{avocat_nom}}' }}</code>, <code>{{ '{{avocat_barreau}}' }}</code>, <code>{{ '{{avocat_numero}}' }}</code>).</p>
-                <div class="row g-3">
-                    <div class="col-12">
-                        <label class="form-label small fw-semibold">Nom complet de l'avocat</label>
-                        <input class="form-control" x-model="form.avocatNom" placeholder="Maître Jean Dupont">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label small fw-semibold">Barreau</label>
-                        <input class="form-control" x-model="form.avocatBarreau" placeholder="Paris">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label small fw-semibold">N° de l'ordre</label>
-                        <input class="form-control" x-model="form.avocatNumero" placeholder="P12345">
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Aperçu actes -->
-        <div class="card mb-4">
-            <div class="card-header fw-semibold"><i class="fa fa-eye me-2 text-muted"></i>Aperçu signature dans les actes</div>
-            <div class="card-body">
-                <div class="border rounded p-3 bg-light font-monospace apercu-signature" x-text="apercuSignature"></div>
-            </div>
-        </div>
-
     </div>
-</div>
 
 </div>
 {% endblock %}
@@ -134,17 +289,17 @@ function parametresPage() {
             const data = await api.get('/api/config');
             if (data.success) {
                 const d = data.data;
-                this.form.nom              = d.nom              ?? '';
-                this.form.adresse          = d.adresse          ?? '';
-                this.form.codePostal       = d.codePostal       ?? '';
-                this.form.ville            = d.ville            ?? '';
-                this.form.telephone        = d.telephone        ?? '';
-                this.form.email            = d.email            ?? '';
-                this.form.siret            = d.siret            ?? '';
-                this.form.tauxHoraireDefaut= d.tauxHoraireDefaut ?? 150;
-                this.form.avocatNom        = d.avocatNom        ?? '';
-                this.form.avocatBarreau    = d.avocatBarreau    ?? '';
-                this.form.avocatNumero     = d.avocatNumero     ?? '';
+                this.form.nom               = d.nom               ?? '';
+                this.form.adresse           = d.adresse           ?? '';
+                this.form.codePostal        = d.codePostal        ?? '';
+                this.form.ville             = d.ville             ?? '';
+                this.form.telephone         = d.telephone         ?? '';
+                this.form.email             = d.email             ?? '';
+                this.form.siret             = d.siret             ?? '';
+                this.form.tauxHoraireDefaut = d.tauxHoraireDefaut ?? 150;
+                this.form.avocatNom         = d.avocatNom         ?? '';
+                this.form.avocatBarreau     = d.avocatBarreau     ?? '';
+                this.form.avocatNumero      = d.avocatNumero      ?? '';
             }
         },
 
@@ -164,6 +319,98 @@ function parametresPage() {
             }
             this.saving = false;
         }
+    };
+}
+
+function themePage() {
+    return {
+        matieres:       {{ matieres|json_encode|raw }},
+        statuts:        {{ statuts|json_encode|raw }},
+        statutsActe:    {{ statutsActe|json_encode|raw }},
+        statutsFacture: {{ statutsFacture|json_encode|raw }},
+        conflits:       {{ conflits|json_encode|raw }},
+        savingMatieres: false,
+        savingStatuts: false,
+        savingStatutsActe: false,
+        savingStatutsFacture: false,
+        savingConflits: false,
+
+        init() {},
+
+        reinitialiserMatieres() {
+            this.matieres = this.matieres.map(m => ({ ...m, couleur: m.defaut }));
+            notify('Couleurs réinitialisées — cliquez sur Enregistrer pour confirmer', 'info');
+        },
+
+        async sauvegarderMatieres() {
+            this.savingMatieres = true;
+            const couleursMatiere = {};
+            this.matieres.forEach(m => { couleursMatiere[m.label] = m.couleur; });
+            const data = await api.patch('/api/config', { couleursMatiere });
+            if (data.success) notify('Couleurs des matières enregistrées', 'success');
+            else notify(data.error || 'Erreur', 'error');
+            this.savingMatieres = false;
+        },
+
+        reinitialiserStatuts() {
+            this.statuts = this.statuts.map(s => ({ ...s, couleur: s.defaut }));
+            notify('Couleurs réinitialisées — cliquez sur Enregistrer pour confirmer', 'info');
+        },
+
+        async sauvegarderStatuts() {
+            this.savingStatuts = true;
+            const couleursStatut = {};
+            this.statuts.forEach(s => { couleursStatut[s.label] = s.couleur; });
+            const data = await api.patch('/api/config', { couleursStatut });
+            if (data.success) notify('Couleurs des statuts enregistrées', 'success');
+            else notify(data.error || 'Erreur', 'error');
+            this.savingStatuts = false;
+        },
+
+        reinitialiserStatutsActe() {
+            this.statutsActe = this.statutsActe.map(s => ({ ...s, couleur: s.defaut }));
+            notify('Couleurs réinitialisées — cliquez sur Enregistrer pour confirmer', 'info');
+        },
+
+        async sauvegarderStatutsActe() {
+            this.savingStatutsActe = true;
+            const couleursStatutActe = {};
+            this.statutsActe.forEach(s => { couleursStatutActe[s.label] = s.couleur; });
+            const data = await api.patch('/api/config', { couleursStatutActe });
+            if (data.success) notify('Couleurs des statuts d\'actes enregistrées', 'success');
+            else notify(data.error || 'Erreur', 'error');
+            this.savingStatutsActe = false;
+        },
+
+        reinitialiserStatutsFacture() {
+            this.statutsFacture = this.statutsFacture.map(s => ({ ...s, couleur: s.defaut }));
+            notify('Couleurs réinitialisées — cliquez sur Enregistrer pour confirmer', 'info');
+        },
+
+        async sauvegarderStatutsFacture() {
+            this.savingStatutsFacture = true;
+            const couleursStatutFacture = {};
+            this.statutsFacture.forEach(s => { couleursStatutFacture[s.label] = s.couleur; });
+            const data = await api.patch('/api/config', { couleursStatutFacture });
+            if (data.success) notify('Couleurs des statuts d\'honoraires enregistrées', 'success');
+            else notify(data.error || 'Erreur', 'error');
+            this.savingStatutsFacture = false;
+        },
+
+        reinitialiserConflits() {
+            this.conflits = this.conflits.map(c => ({ ...c, couleur: c.defaut }));
+            notify('Couleurs réinitialisées — cliquez sur Enregistrer pour confirmer', 'info');
+        },
+
+        async sauvegarderConflits() {
+            this.savingConflits = true;
+            const couleursConflit = {};
+            this.conflits.forEach(c => { couleursConflit[c.label] = c.couleur; });
+            const data = await api.patch('/api/config', { couleursConflit });
+            if (data.success) notify('Couleurs des conflits enregistrées', 'success');
+            else notify(data.error || 'Erreur', 'error');
+            this.savingConflits = false;
+        },
     };
 }
 </script>

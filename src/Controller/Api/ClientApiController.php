@@ -11,6 +11,7 @@ use App\Repository\FactureRepository;
 use App\Service\ConflitService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -25,6 +26,7 @@ class ClientApiController extends AbstractController
         private readonly DossierRepository $dossierRepo,
         private readonly FactureRepository $factureRepo,
         private readonly ConflitService $conflitService,
+        #[Autowire(env: 'CABINET_CODE')] private readonly string $cabinetCode = '001',
     ) {}
 
     #[Route('', name: 'list', methods: ['GET'])]
@@ -57,7 +59,10 @@ class ClientApiController extends AbstractController
         $this->hydrateClient($client, $data);
 
         if (empty($client->getCodeClient())) {
-            $client->setCodeClient('C-' . date('Y') . '-' . str_pad((string)rand(1, 99999), 5, '0', STR_PAD_LEFT));
+            do {
+                $code = 'C-' . date('Y') . '-' . $this->cabinetCode . '-' . str_pad((string)rand(1, 99999), 5, '0', STR_PAD_LEFT);
+            } while ($this->clientRepo->findOneBy(['codeClient' => $code]) !== null);
+            $client->setCodeClient($code);
         }
 
         $this->em->persist($client);

@@ -59,11 +59,7 @@
 
     <div class="nav-section">Administration</div>
 
-    <a href="{{ path('parametres_index') }}" class="nav-link {{ app.request.get('_route') == 'parametres_index' ? 'active' : '' }}">
+    <a href="{{ path('parametres_index') }}" class="nav-link {{ app.request.get('_route') in ['parametres_index', 'theme_index'] ? 'active' : '' }}">
         <i class="fa fa-gear"></i> Paramètres
-    </a>
-
-    <a href="{{ path('theme_index') }}" class="nav-link {{ app.request.get('_route') == 'theme_index' ? 'active' : '' }}">
-        <i class="fa fa-palette"></i> Thème
     </a>
 </nav>
