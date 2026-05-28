@@ -45,6 +45,18 @@ jobs:
     runs-on: ubuntu-latest
     needs: build-and-push
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Copy docker-compose.yml to server
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "docker-compose.yml"
+          target: "/var/www/crm-cabinet-avocat"
+
       - name: Deploy to Server via SSH
         uses: appleboy/ssh-action@master
         with:
@@ -56,4 +68,4 @@ jobs:
             echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             docker compose pull php
             docker compose run --rm php php bin/console doctrine:migrations:migrate --no-interaction
-            docker compose up -d --force-recreate php
+            docker compose up -d --force-recreate php adminer
