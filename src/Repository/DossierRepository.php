@@ -74,7 +74,8 @@ class DossierRepository extends ServiceEntityRepository
             $p = 'qt' . $i;
             $parts[] = "(LOWER(d.titre) LIKE :$p OR LOWER(d.partieAdverseNom) LIKE :$p"
                      . " OR LOWER(d.partieAdverseEntreprise) LIKE :$p"
-                     . " OR LOWER(c.nom) LIKE :$p OR LOWER(c.prenom) LIKE :$p)";
+                     . " OR LOWER(c.nom) LIKE :$p OR LOWER(c.prenom) LIKE :$p"
+                     . " OR LOWER(d.numeroDossier) LIKE :$p OR LOWER(c.codeClient) LIKE :$p)";
             $qb->setParameter($p, '%' . $token . '%');
         }
 
