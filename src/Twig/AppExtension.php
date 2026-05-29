@@ -47,7 +47,10 @@ class AppExtension extends AbstractExtension implements GlobalsInterface
             $couleursConflit[$key] = $storedConflit[$key] ?? $defaut;
         }
 
+        $gitVersion = trim((string) @shell_exec('git describe --tags --always 2>nul')) ?: 'dev';
+
         return [
+            'app_version'              => $gitVersion,
             'cabinet_config'           => $config,
             'matieres_list'            => $matieresList,
             'couleurs_matieres'        => $couleursMatieres,

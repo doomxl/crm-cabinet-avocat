@@ -98,6 +98,8 @@ a:hover { color: var(--orange); text-decoration: none; }
 
 th { font-size: 0.8rem; font-weight: 500; }
 
+code { color: var(--orange); }
+
 /* ============================================================
    SIDEBAR
    ============================================================ */
@@ -152,6 +154,15 @@ th { font-size: 0.8rem; font-weight: 500; }
     background: var(--navy-light);
 }
 #sidebar .nav-link .fa { width: 18px; text-align: center; font-size: 0.9rem; }
+#sidebar .sidebar-version {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    text-align: center;
+    padding: 8px;
+    font-size: 0.65rem;
+    color: rgba(255,255,255,0.25);
+    letter-spacing: 0.05em;
+}
 
 /* ============================================================
    TOPBAR

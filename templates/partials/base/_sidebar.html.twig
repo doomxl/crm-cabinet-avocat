@@ -1,9 +1,11 @@
 <nav id="sidebar">
-    <a href="{{ path('dashboard_index') }}" class="brand">
-        <i class="fa fa-scale-balanced flash-color"></i> CRM&nbsp;Cabinet&nbsp;Avocat
-        <small>CRM {{ app_version }}</small>
-        <small id="cabinet-name" class="mt-1" style="color: #fff"><i>{{ cabinet_config.nom }}</i></small>
-        
+    <a href="{{ path('dashboard_index') }}" class="brand d-flex flex-column align-items-center text-center">
+        {% if cabinet_config.logo %}
+            <img src="/uploads/logo/{{ cabinet_config.logo }}" alt="logo" style="height:56px;width:auto;object-fit:contain;border-radius:10px;margin-bottom:8px">
+        {% else %}
+            <i class="fa fa-scale-balanced flash-color mb-2"></i>
+        {% endif %}
+        {{ cabinet_config.nom }}
     </a>
 
     <div class="nav-section">Principal</div>
@@ -62,4 +64,6 @@
     <a href="{{ path('parametres_index') }}" class="nav-link {{ app.request.get('_route') in ['parametres_index', 'theme_index'] ? 'active' : '' }}">
         <i class="fa fa-gear"></i> Paramètres
     </a>
+
+    <div class="sidebar-version"><i class="fa fa-scale-balanced me-1" style="font-size:0.6rem;color:var(--orange)"></i>CRM Cabinet Avocat {{ app_version }}</div>
 </nav>
