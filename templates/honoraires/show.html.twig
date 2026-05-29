@@ -26,16 +26,16 @@
             <div class="card-header">Informations</div>
             <div class="card-body">
                 <dl class="row small mb-0">
-                    <dt class="col-5 text-muted">Client</dt>
-                    <dd class="col-7"><a href="/clients/{{ facture.client.id }}" class="text-decoration-none text-uppercase fw-semibold">{{ facture.client.nomComplet }}</a></dd>
+                    <dt class="col-4 text-muted">Client</dt>
+                    <dd class="col-8"><a href="/clients/{{ facture.client.id }}" class="text-decoration-none text-uppercase fw-semibold">{{ facture.client.nomComplet }}</a></dd>
                     {% if facture.dossier %}
-                    <dt class="col-5 text-muted">Dossier</dt>
-                    <dd class="col-7"><a href="/dossiers/{{ facture.dossier.id }}" class="text-decoration-none">{{ facture.dossier.titre|slice(0,30) }}</a></dd>
+                    <dt class="col-4 text-muted">Dossier</dt>
+                    <dd class="col-8"><a href="/dossiers/{{ facture.dossier.id }}" class="text-decoration-none">{{ facture.dossier.titre|slice(0,30) }}</a></dd>
                     {% endif %}
-                    <dt class="col-5 text-muted">Date</dt>
-                    <dd class="col-7">{{ facture.dateEmission|date('d/m/Y') }}</dd>
-                    <dt class="col-5 text-muted">Règlement</dt>
-                    <dd class="col-7">{{ facture.modeReglement.value }}</dd>
+                    <dt class="col-4 text-muted">Date</dt>
+                    <dd class="col-8">{{ facture.dateEmission|date('d/m/Y') }}</dd>
+                    <dt class="col-4 text-muted">Règlement</dt>
+                    <dd class="col-8">{{ facture.modeReglement.value }}</dd>
                 </dl>
             </div>
         </div>
@@ -139,7 +139,7 @@
                 <thead><tr><th>Date</th><th>Montant</th><th>Mode</th><th>Référence</th><th></th></tr></thead>
                 <tbody>
                     <template x-if="paiements.length === 0">
-                        <tr><td colspan="5" class="text-center text-muted small py-3">Aucun paiement enregistré</td></tr>
+                        <tr><td colspan="5" class="text-center text-muted small py-3 fst-italic">Aucun paiement enregistré</td></tr>
                     </template>
                     <template x-for="p in paiements" :key="p.id">
                         <tr>

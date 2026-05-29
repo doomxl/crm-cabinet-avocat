@@ -257,7 +257,7 @@ Utilisez le panneau Variables (bouton en haut à droite) pour insérer des varia
                     <div class="list-group-item text-center py-3 text-muted fst-italic small"><i class="fa fa-spinner fa-spin me-2"></i>Chargement en cours...</div>
                 </template>
                 <template x-if="!loading && modeles.length === 0">
-                    <div class="list-group-item text-muted small">Aucun modèle</div>
+                    <div class="list-group-item text-muted small fst-italic">Aucun modèle</div>
                 </template>
                 <template x-for="m in modeles" :key="m.id">
                     <div class="list-group-item d-flex justify-content-between align-items-center">
@@ -316,7 +316,7 @@ Utilisez le panneau Variables (bouton en haut à droite) pour insérer des varia
                     <div class="list-group-item text-center py-3 text-muted fst-italic small"><i class="fa fa-spinner fa-spin me-2"></i>Chargement en cours...</div>
                 </template>
                 <template x-if="!loading && actes.length === 0">
-                    <div class="list-group-item text-muted small">Aucun acte généré</div>
+                    <div class="list-group-item text-muted small fst-italic">Aucun acte généré</div>
                 </template>
                 <template x-for="a in actes" :key="a.id">
                     <div class="list-group-item d-flex align-items-center gap-2">

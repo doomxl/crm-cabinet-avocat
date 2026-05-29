@@ -13,7 +13,7 @@
     <div class="d-flex gap-2">
         <button class="btn btn-sm btn-outline-orange" @click="toggleVue()"
                 x-text="vue === 'semaine' ? 'Vue mensuelle' : 'Vue hebdomadaire'"></button>
-        <button class="btn btn-primary" @click="showForm = !showForm"><i class="fa fa-plus me-1"></i>Nouveau RDV</button>
+        <button class="btn btn-outline-orange" @click="showForm = !showForm"><i class="fa fa-plus me-1"></i>Nouveau RDV</button>
     </div>
 </div>
 
@@ -60,7 +60,7 @@
             </div>
         </div>
         <div class="mt-2 text-end">
-            <button class="btn btn-sm btn-primary" @click="addRdv()">Enregistrer</button>
+            <button class="btn btn-sm btn-outline-orange" @click="addRdv()">Enregistrer</button>
             <button class="btn btn-sm btn-outline-secondary ms-1" @click="showForm = false">Annuler</button>
         </div>
     </div>
@@ -117,7 +117,7 @@
             </button>
             <div class="d-flex gap-2">
                 <button class="btn btn-sm btn-outline-secondary" @click="showEdit = false">Annuler</button>
-                <button class="btn btn-sm btn-primary" @click="sauvegarderEdit()">
+                <button class="btn btn-sm btn-outline-orange" @click="sauvegarderEdit()">
                     <i class="fa fa-save me-1"></i>Enregistrer
                 </button>
             </div>

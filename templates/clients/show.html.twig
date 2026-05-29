@@ -109,7 +109,7 @@
                     <div class="text-center text-muted py-3 small fst-italic"><i class="fa fa-spinner fa-spin me-2"></i>Chargement en cours...</div>
                 </template>
                 <template x-if="!loading && dossiers.length === 0">
-                    <div class="text-center text-muted py-3 small">Aucun dossier</div>
+                    <div class="text-center text-muted py-3 small fst-italic">Aucun dossier</div>
                 </template>
                 <template x-for="d in dossiers" :key="d.id">
                     <div class="d-flex align-items-center gap-3 px-4 py-3 border-bottom">
@@ -138,7 +138,7 @@
                     <div class="text-center text-muted py-3 small fst-italic"><i class="fa fa-spinner fa-spin me-2"></i>Chargement en cours...</div>
                 </template>
                 <template x-if="!loading && factures.length === 0">
-                    <div class="text-center text-muted py-3 small">Aucune facture</div>
+                    <div class="text-center text-muted py-3 small fst-italic">Aucune facture</div>
                 </template>
                 <template x-for="f in factures" :key="f.id">
                     <div class="d-flex align-items-center gap-3 px-4 py-3 border-bottom">

@@ -45,7 +45,7 @@
     <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-parties" @click="loadParties()">Parties adverses</button></li>
     <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-echeances" @click="loadEcheances()">
         Échéances
-        <span class="badge bg-danger ms-1" x-show="urgentes > 0" x-text="urgentes"></span>
+        <span class="badge ms-1" style="background:var(--orange)" x-show="urgentes > 0" x-text="urgentes"></span>
     </button></li>
     <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-chronologie" @click="loadChronologie()">Chronologie</button></li>
     <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-documents" @click="loadDocuments()">Documents</button></li>
@@ -106,7 +106,7 @@
                             {% endif %}
                         </dl>
                         {% else %}
-                        <p class="text-muted small mb-0">Aucune partie adverse renseignée</p>
+                        <p class="text-muted small mb-0 fst-italic">Aucune partie adverse renseignée</p>
                         {% endif %}
                     </div>
                 </div>
@@ -184,13 +184,23 @@
         </div>
         <div class="card">
             <div class="card-body p-0">
-                <template x-if="echeances.length === 0">
+                <template x-if="loadingEcheances">
+                    <div class="text-center py-4 text-muted small fst-italic"><i class="fa fa-spinner fa-spin me-2"></i>Chargement en cours...</div>
+                </template>
+                <template x-if="!loadingEcheances && echeances.length === 0">
                     <div class="text-center py-4 text-muted small fst-italic">Aucune échéance</div>
                 </template>
                 <template x-for="e in echeances" :key="e.id">
                     <div class="d-flex align-items-center gap-3 px-4 py-3 border-bottom">
                         <div class="text-center flex-shrink-0" style="width:48px">
-                            <div class="fw-bold small" :style="`color:${e.urgence ? e.urgence.couleur : '#374151'}`" x-text="e.joursRestants + 'j'"></div>
+                            <template x-if="e.joursRestants < 0">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center alert-circle mx-auto">
+                                    <span class="small fw-bold flash-color" x-text="e.joursRestants + 'j'"></span>
+                                </div>
+                            </template>
+                            <template x-if="e.joursRestants >= 0">
+                                <div class="fw-bold small" :style="`color:${e.urgence ? e.urgence.couleur : '#374151'}`" x-text="e.joursRestants + 'j'"></div>
+                            </template>
                         </div>
                         <div class="flex-grow-1">
                             <div class="fw-semibold small" x-text="e.type"></div>
@@ -317,7 +327,7 @@
 function dossierDetail(dossierId) {
     return {
         parties: [], echeances: [], chronologie: [], documents: [], actes: [],
-        urgentes: 0,
+        urgentes: 0, loadingEcheances: false,
         showAddPartie: false, showAddEcheance: false, showAddChrono: false,
         newPartie: {nom:'',prenom:'',entreprise:'',avocatAdverse:'', typePartie:'Personne physique'},
         newEcheance: {type:'Audience', date:'', description:''},
@@ -337,8 +347,10 @@ function dossierDetail(dossierId) {
         },
 
         async loadEcheances() {
+            this.loadingEcheances = true;
             const d = await api.get(`/api/dossiers/${dossierId}/echeances`);
             if (d.success) this.echeances = d.data;
+            this.loadingEcheances = false;
         },
 
         async loadChronologie() {

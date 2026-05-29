@@ -6,12 +6,14 @@ use App\Entity\Facture;
 use App\Enum\StatutFactureEnum;
 use App\Repository\FactureRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 class FactureService
 {
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly FactureRepository $factureRepository,
+        #[Autowire(env: 'CABINET_CODE')] private readonly string $cabinetCode = '001',
     ) {}
 
     public function calculerMontantTtc(Facture $facture): float
@@ -58,26 +60,11 @@ class FactureService
     public function genererNumero(): string
     {
         $annee = date('Y');
-        $prefix = 'FA-' . $annee . '-';
+        do {
+            $numero = 'F-' . $annee . '-' . $this->cabinetCode . '-' . str_pad((string)rand(1, 99999), 5, '0', STR_PAD_LEFT);
+        } while ($this->factureRepository->findOneBy(['numero' => $numero]) !== null);
 
-        // Trouver le dernier numéro de l'année
-        $derniere = $this->entityManager->getRepository(Facture::class)
-            ->createQueryBuilder('f')
-            ->where('f.numero LIKE :prefix')
-            ->setParameter('prefix', $prefix . '%')
-            ->orderBy('f.numero', 'DESC')
-            ->setMaxResults(1)
-            ->getQuery()
-            ->getOneOrNullResult();
-
-        if ($derniere) {
-            $parts = explode('-', $derniere->getNumero());
-            $seq = (int)end($parts) + 1;
-        } else {
-            $seq = 1;
-        }
-
-        return $prefix . str_pad((string)$seq, 4, '0', STR_PAD_LEFT);
+        return $numero;
     }
 
     public function recalculerMontantHt(Facture $facture): void
