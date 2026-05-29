@@ -73,7 +73,10 @@
                     <span class="badge badge-orange" x-show="alertes.length > 0" x-text="alertes.length"></span>
                 </div>
                 <div class="card-body p-0">
-                    <template x-if="alertes.length === 0">
+                    <template x-if="loading">
+                        <div class="text-center text-muted py-4 fst-italic small"><i class="fa fa-spinner fa-spin me-2"></i>Chargement en cours...</div>
+                    </template>
+                    <template x-if="!loading && alertes.length === 0">
                         <div class="text-center text-muted py-4 fst-italic"><!--i class="fa fa-check-circle"></i-->Aucune alerte</div>
                     </template>
                     <template x-for="alerte in alertes" :key="alerte.message">
@@ -95,7 +98,10 @@
                     <a href="{{ path('agenda_index') }}" class="btn btn-sm btn-outline-orange">Voir tout</a>
                 </div>
                 <div class="card-body p-0">
-                    <template x-if="rdvsAVenir.length === 0">
+                    <template x-if="loading">
+                        <div class="text-center text-muted py-4 fst-italic small"><i class="fa fa-spinner fa-spin me-2"></i>Chargement en cours...</div>
+                    </template>
+                    <template x-if="!loading && rdvsAVenir.length === 0">
                         <div class="text-center text-muted py-4 fst-italic">Aucun rendez-vous prévu</div>
                     </template>
                     <template x-for="rdv in rdvsAVenir" :key="rdv.id">
@@ -121,7 +127,10 @@
                     <a href="{{ path('echeance_index') }}" class="btn btn-sm btn-outline-orange">Voir toutes</a>
                 </div>
                 <div class="card-body p-0">
-                    <template x-if="echeancesUrgentes.length === 0">
+                    <template x-if="loading">
+                        <div class="text-center text-muted py-4 fst-italic small"><i class="fa fa-spinner fa-spin me-2"></i>Chargement en cours...</div>
+                    </template>
+                    <template x-if="!loading && echeancesUrgentes.length === 0">
                         <div class="text-center text-muted py-4 fst-italic">Aucune échéance urgente</div>
                     </template>
                     <template x-for="e in echeancesUrgentes" :key="e.id">
@@ -172,6 +181,7 @@ function dashboard() {
         rdvsAVenir: [],
         statsByMatiere: [],
         chartInstance: null,
+        loading: true,
 
         async init() {
             try {
@@ -184,7 +194,7 @@ function dashboard() {
                     this.statsByMatiere = data.data.statsByMatiere;
                     this.$nextTick(() => this.drawChart());
                 }
-            } catch(e) { console.error(e); }
+            } catch(e) { console.error(e); } finally { this.loading = false; }
         },
 
         drawChart() {

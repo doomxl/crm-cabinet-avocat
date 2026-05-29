@@ -6,12 +6,16 @@ use App\Enum\StatutActeEnum;
 use App\Enum\StatutDossierEnum;
 use App\Enum\StatutFactureEnum;
 use App\Repository\CabinetConfigRepository;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Twig\Extension\AbstractExtension;
 use Twig\Extension\GlobalsInterface;
 
 class AppExtension extends AbstractExtension implements GlobalsInterface
 {
-    public function __construct(private CabinetConfigRepository $cabinetConfigRepository) {}
+    public function __construct(
+        private CabinetConfigRepository $cabinetConfigRepository,
+        #[Autowire(env: 'APP_ENV')] private string $appEnv = 'dev',
+    ) {}
 
     public function getGlobals(): array
     {
@@ -47,7 +51,9 @@ class AppExtension extends AbstractExtension implements GlobalsInterface
             $couleursConflit[$key] = $storedConflit[$key] ?? $defaut;
         }
 
-        $gitVersion = trim((string) @shell_exec('git describe --tags --always 2>nul')) ?: 'dev';
+        $gitVersion = $this->appEnv === 'prod'
+            ? (trim((string) @shell_exec('git describe --tags --always 2>/dev/null')) ?: 'prod')
+            : 'dev';
 
         return [
             'app_version'              => $gitVersion,
