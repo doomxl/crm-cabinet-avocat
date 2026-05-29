@@ -50,7 +50,7 @@
                     <select class="form-select" x-model="form.matiere">
                         <option value="">-- Non défini --</option>
                         {% for matiere in matieres %}
-                        <option value="{{ matiere.value }}" {{ dossier and dossier.matiere and dossier.matiere.value == matiere.value ? 'selected' : '' }}>{{ matiere.label() }}</option>
+                        <option value="{{ matiere.label }}" {{ dossier and dossier.matiere == matiere.label ? 'selected' : '' }}>{{ matiere.label }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -155,7 +155,7 @@ function dossierForm() {
             couleur: '{{ dossier ? dossier.couleur : '#3B82F6' }}',
             clientId: '{{ dossier ? dossier.client.id : '' }}',
             statut: '{{ dossier ? dossier.statut.value|escape('js') : 'En cours' }}',
-            matiere: '{{ dossier ? (dossier.matiere ? dossier.matiere.value|escape('js') : '') : '' }}',
+            matiere: '{{ dossier ? dossier.matiere|escape('js') : '' }}',
             notes: `{{ dossier ? dossier.notes|escape('js') : '' }}`,
             dateOuverture: '{{ dossier ? dossier.dateOuverture|date('Y-m-d') : 'now'|date('Y-m-d') }}',
             partieAdverseNom: '{{ dossier ? dossier.partieAdverseNom|escape('js') : '' }}',

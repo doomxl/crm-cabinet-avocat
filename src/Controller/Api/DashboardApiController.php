@@ -57,16 +57,18 @@ class DashboardApiController extends AbstractController
         $alertes = [];
         if ($totalImpaye > 0) {
             $alertes[] = [
-                'type' => 'impaye',
+                'type'    => 'impaye',
                 'couleur' => '#EF4444',
                 'message' => count($factures) . ' facture(s) impayée(s) - ' . number_format($totalImpaye, 2, ',', ' ') . ' € restant dû',
+                'url'     => '/honoraires',
             ];
         }
         if (count($echeancesUrgentes) > 0) {
             $alertes[] = [
-                'type' => 'echeance',
+                'type'    => 'echeance',
                 'couleur' => '#F97316',
                 'message' => count($echeancesUrgentes) . ' échéance(s) dans les 7 prochains jours',
+                'url'     => '/echeances',
             ];
         }
 

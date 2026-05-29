@@ -201,7 +201,7 @@ class TemplateMoteurService
             // --- Dossier ---
             'dossier_id'             => (string)($dossier->getId() ?? ''),
             'dossier_titre'          => $dossier->getTitre(),
-            'dossier_matiere'        => $dossier->getMatiere()?->value ?? '',
+            'dossier_matiere'        => $dossier->getMatiere() ?? '',
             'dossier_date_ouverture' => $dossier->getDateOuverture()->format('d/m/Y'),
             'dossier_statut'         => $dossier->getStatut()->value,
             'dossier_notes'          => $dossier->getNotes() ?? '',

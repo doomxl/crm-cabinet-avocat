@@ -4,7 +4,6 @@ namespace App\Controller\Api;
 
 use App\Entity\Chronologie;
 use App\Entity\Dossier;
-use App\Enum\MatiereEnum;
 use App\Enum\StatutDossierEnum;
 use App\Enum\TypeConventionEnum;
 use App\Enum\TypeEvenementEnum;
@@ -17,6 +16,7 @@ use App\Repository\EcheanceRepository;
 use App\Repository\PartieAdverseRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
@@ -32,6 +32,7 @@ class DossierApiController extends AbstractController
         private readonly ChronologieRepository $chronologieRepo,
         private readonly PartieAdverseRepository $partieAdverseRepo,
         private readonly DocumentDossierRepository $documentRepo,
+        #[Autowire(env: 'CABINET_CODE')] private readonly string $cabinetCode = '001',
     ) {}
 
     #[Route('', name: 'list', methods: ['GET'])]
@@ -66,6 +67,11 @@ class DossierApiController extends AbstractController
         $dossier = new Dossier();
         $dossier->setClient($client);
         $this->hydrateDossier($dossier, $data);
+
+        do {
+            $numero = 'D-' . date('Y') . '-' . $this->cabinetCode . '-' . str_pad((string)rand(1, 99999), 5, '0', STR_PAD_LEFT);
+        } while ($this->dossierRepo->findOneBy(['numeroDossier' => $numero]) !== null);
+        $dossier->setNumeroDossier($numero);
 
         $this->em->persist($dossier);
 
@@ -227,9 +233,8 @@ class DossierApiController extends AbstractController
             $s = StatutDossierEnum::tryFrom($data['statut']);
             if ($s) $dossier->setStatut($s);
         }
-        if (isset($data['matiere'])) {
-            $m = MatiereEnum::tryFrom($data['matiere']);
-            $dossier->setMatiere($m);
+        if (array_key_exists('matiere', $data)) {
+            $dossier->setMatiere($data['matiere'] ?: null);
         }
         if (isset($data['dateOuverture'])) {
             $dossier->setDateOuverture(new \DateTimeImmutable($data['dateOuverture']));

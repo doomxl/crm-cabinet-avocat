@@ -2,7 +2,6 @@
 
 namespace App\Twig;
 
-use App\Enum\MatiereEnum;
 use App\Enum\StatutActeEnum;
 use App\Enum\StatutDossierEnum;
 use App\Enum\StatutFactureEnum;
@@ -17,11 +16,10 @@ class AppExtension extends AbstractExtension implements GlobalsInterface
     public function getGlobals(): array
     {
         $config = $this->cabinetConfigRepository->getConfig();
-        $stored = $config->getCouleursMatiere();
-
+        $matieresList = $config->getMatieres();
         $couleursMatieres = [];
-        foreach (MatiereEnum::cases() as $m) {
-            $couleursMatieres[$m->value] = $stored[$m->value] ?? $m->couleur();
+        foreach ($matieresList as $m) {
+            $couleursMatieres[$m['label']] = $m['couleur'];
         }
 
         $storedStatuts = $config->getCouleursStatut();
@@ -51,11 +49,13 @@ class AppExtension extends AbstractExtension implements GlobalsInterface
 
         return [
             'cabinet_config'           => $config,
+            'matieres_list'            => $matieresList,
             'couleurs_matieres'        => $couleursMatieres,
             'couleurs_statuts'         => $couleursStatuts,
             'couleurs_statuts_acte'    => $couleursStatutsActe,
             'couleurs_statuts_facture' => $couleursStatutsFacture,
             'couleurs_conflits'        => $couleursConflit,
+            'couleurs_echeances'       => $config->getCouleursEcheance(),
         ];
     }
 }

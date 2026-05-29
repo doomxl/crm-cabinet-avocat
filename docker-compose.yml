@@ -10,6 +10,8 @@ services:
       - SERVER_NAME=:80
       - CADDY_GLOBAL_OPTIONS=auto_https off
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}?serverVersion=18&charset=utf8
+    volumes:
+      - crm_uploads:/app/public/uploads
     depends_on:
       database:
         condition: service_healthy
@@ -44,6 +46,7 @@ services:
 
 volumes:
   crm_pg_data:
+  crm_uploads:
 
 networks:
   gateway_net:

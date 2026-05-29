@@ -59,6 +59,15 @@ class CabinetConfig
     #[ORM\Column(name: 'couleurs_conflit', type: 'json')]
     private array $couleursConflit = [];
 
+    #[ORM\Column(name: 'couleurs_echeance', type: 'json')]
+    private array $couleursEcheance = [];
+
+    #[ORM\Column(name: 'matieres', type: 'json')]
+    private array $matieres = [];
+
+    #[ORM\Column(name: 'logo', type: 'string', length: 255, nullable: true)]
+    private ?string $logo = null;
+
     #[ORM\Column(name: 'taux_horaire_defaut', type: 'decimal', precision: 10, scale: 2)]
     private string $tauxHoraireDefaut = '150.00';
 
@@ -118,6 +127,55 @@ class CabinetConfig
     public function setCouleursStatutFacture(array $couleursStatutFacture): static { $this->couleursStatutFacture = $couleursStatutFacture; return $this; }
     public function getCouleursConflit(): array { return $this->couleursConflit; }
     public function setCouleursConflit(array $couleursConflit): static { $this->couleursConflit = $couleursConflit; return $this; }
+
+    private static array $echeanceDefauts = [
+        'expire'    => '#9CA3AF',
+        'critique'  => '#F87171',
+        'urgent'    => '#FDBA74',
+        'attention' => '#FCD34D',
+        'normal'    => '#60A5FA',
+        'lointain'  => '#34D399',
+    ];
+
+    public function getCouleursEcheance(): array
+    {
+        $stored = $this->couleursEcheance;
+        $result = [];
+        foreach (self::$echeanceDefauts as $niveau => $defaut) {
+            $result[$niveau] = $stored[$niveau] ?? $defaut;
+        }
+        return $result;
+    }
+
+    public static function getEcheanceDefauts(): array { return self::$echeanceDefauts; }
+    public function setCouleursEcheance(array $couleursEcheance): static { $this->couleursEcheance = $couleursEcheance; return $this; }
+
+    public function getMatieres(): array
+    {
+        if (empty($this->matieres)) {
+            $defaults = [
+                'Droit familial'     => '#F472B6',
+                'Droit pénal'        => '#F87171',
+                'Droit des affaires' => '#60A5FA',
+                'Droit social'       => '#FDBA74',
+                'Droit immobilier'   => '#34D399',
+                'Droit administratif'=> '#A78BFA',
+                'Droit international'=> '#22D3EE',
+                'Autres'             => '#9CA3AF',
+            ];
+            $stored = $this->couleursMatiere;
+            $result = [];
+            foreach ($defaults as $label => $couleur) {
+                $result[] = ['label' => $label, 'couleur' => $stored[$label] ?? $couleur];
+            }
+            return $result;
+        }
+        return $this->matieres;
+    }
+
+    public function setMatieres(array $matieres): static { $this->matieres = $matieres; return $this; }
+    public function getLogo(): ?string { return $this->logo; }
+    public function setLogo(?string $logo): static { $this->logo = $logo; return $this; }
     public function getTauxHoraireDefaut(): string { return $this->tauxHoraireDefaut; }
     public function setTauxHoraireDefaut(string $tauxHoraireDefaut): static { $this->tauxHoraireDefaut = $tauxHoraireDefaut; return $this; }
     public function getUpdatedAt(): \DateTimeImmutable { return $this->updatedAt; }
@@ -140,7 +198,10 @@ class CabinetConfig
             'couleursStatut'     => $this->couleursStatut,
             'couleursStatutActe'    => $this->couleursStatutActe,
             'couleursStatutFacture' => $this->couleursStatutFacture,
-            'couleursConflit'       => $this->couleursConflit,
+            'couleursConflit'        => $this->couleursConflit,
+            'couleursEcheance'       => $this->getCouleursEcheance(),
+            'matieres'               => $this->getMatieres(),
+            'logo'              => $this->logo ? '/uploads/logo/' . $this->logo : null,
             'tauxHoraireDefaut' => (float)$this->tauxHoraireDefaut,
             'updatedAt' => $this->updatedAt->format('Y-m-d H:i:s'),
         ];

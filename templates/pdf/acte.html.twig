@@ -244,7 +244,7 @@
         {% if acte.dossier.matiere %}
         <tr>
             <td class="label">Matière :</td>
-            <td>{{ acte.dossier.matiere.label() }}</td>
+            <td>{{ acte.dossier.matiere }}</td>
             <td class="label">Date d'ouverture :</td>
             <td>{{ acte.dossier.dateOuverture|date('d/m/Y') }}</td>
         </tr>

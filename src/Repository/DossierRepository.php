@@ -4,7 +4,6 @@ namespace App\Repository;
 
 use App\Entity\Dossier;
 use App\Enum\StatutDossierEnum;
-use App\Enum\MatiereEnum;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -167,6 +166,22 @@ class DossierRepository extends ServiceEntityRepository
             ->groupBy('d.matiere')
             ->getQuery()
             ->getResult();
+    }
+
+    public function updateObsoleteMatieres(array $validLabels, ?string $fallback): void
+    {
+        $qb = $this->createQueryBuilder('d')
+            ->update()
+            ->set('d.matiere', ':fallback')
+            ->where('d.matiere IS NOT NULL')
+            ->setParameter('fallback', $fallback);
+
+        if (!empty($validLabels)) {
+            $qb->andWhere('d.matiere NOT IN (:validLabels)')
+               ->setParameter('validLabels', $validLabels);
+        }
+
+        $qb->getQuery()->execute();
     }
 
     public function save(Dossier $entity, bool $flush = false): void

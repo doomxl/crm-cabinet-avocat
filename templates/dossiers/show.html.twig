@@ -22,18 +22,18 @@
         </div>
         <div class="d-flex gap-2 align-items-center">
             {% if dossier.matiere %}
-            <span class="badge" style="background:{{ couleurs_matieres[dossier.matiere.value] }};color:#F8FAFC">{{ dossier.matiere.label() }}</span>
+            <span class="badge" style="background:{{ couleurs_matieres[dossier.matiere] ?? '#6B7280' }};color:#F8FAFC">{{ dossier.matiere }}</span>
             {% endif %}
             <span class="badge" style="background:{{ couleurs_statuts[dossier.statut.value] }};color:#F8FAFC">{{ dossier.statut.label() }}</span>
         </div>
     </div>
     <div class="d-flex gap-2">
         {% if dossier.statut.value != 'Archivé' %}
-        <button class="btn btn-outline-dark btn-sm" @click="archiver()"><i class="fa fa-archive me-1"></i>Archiver</button>
+        <button class="btn btn-outline-secondary btn-sm" @click="archiver()"><i class="fa fa-archive me-1"></i>Archiver</button>
         {% else %}
-        <button class="btn btn-outline-primary btn-sm" @click="desarchiver()"><i class="fa fa-box-open me-1"></i>Désarchiver</button>
+        <button class="btn btn-outline-orange btn-sm" @click="desarchiver()"><i class="fa fa-box-open me-1"></i>Désarchiver</button>
         {% endif %}
-        <a href="{{ path('dossier_edit', {id: dossier.id}) }}" class="btn btn-outline-primary btn-sm">
+        <a href="{{ path('dossier_edit', {id: dossier.id}) }}" class="btn btn-outline-orange btn-sm">
             <i class="fa fa-pencil me-1"></i>Modifier
         </a>
     </div>
@@ -64,6 +64,10 @@
                         <dl class="row small mb-0">
                             <dt class="col-5 text-muted">Référence</dt>
                             <dd class="col-7">{{ dossier.id }}</dd>
+                            {% if dossier.numeroDossier %}
+                            <dt class="col-5 text-muted">N° Dossier</dt>
+                            <dd class="col-7"><span class="badge bg-light text-dark border font-monospace" style="font-size:0.7rem">{{ dossier.numeroDossier }}</span></dd>
+                            {% endif %}
                             <dt class="col-5 text-muted">Date ouverture</dt>
                             <dd class="col-7">{{ dossier.dateOuverture|date('d/m/Y') }}</dd>
                             {% if dossier.conventionTypeHonoraire %}
@@ -114,7 +118,7 @@
     <div class="tab-pane fade" id="tab-parties">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h6 class="mb-0">Parties adverses</h6>
-            <button class="btn btn-sm btn-primary" @click="showAddPartie = !showAddPartie"><i class="fa fa-plus me-1"></i>Ajouter</button>
+            <button class="btn btn-sm btn-outline-orange" @click="showAddPartie = !showAddPartie"><i class="fa fa-plus me-1"></i>Ajouter</button>
         </div>
         <div class="card mb-3" x-show="showAddPartie">
             <div class="card-header small">Nouvelle partie adverse</div>
@@ -126,7 +130,7 @@
                     <div class="col-md-3"><input class="form-control form-control-sm" x-model="newPartie.avocatAdverse" placeholder="Avocat adverse"></div>
                 </div>
                 <div class="mt-2 text-end">
-                    <button class="btn btn-sm btn-primary" @click="addPartie()">Enregistrer</button>
+                    <button class="btn btn-sm btn-outline-orange" @click="addPartie()">Enregistrer</button>
                     <button class="btn btn-sm btn-outline-secondary ms-1" @click="showAddPartie = false">Annuler</button>
                 </div>
             </div>
@@ -134,7 +138,7 @@
         <div class="card">
             <div class="card-body p-0">
                 <template x-if="parties.length === 0">
-                    <div class="text-center py-4 text-muted small">Aucune partie adverse</div>
+                    <div class="text-center py-4 text-muted small fst-italic">Aucune partie adverse</div>
                 </template>
                 <template x-for="p in parties" :key="p.id">
                     <div class="d-flex align-items-center gap-3 px-4 py-3 border-bottom">
@@ -154,7 +158,7 @@
     <div class="tab-pane fade" id="tab-echeances">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h6 class="mb-0">Échéances</h6>
-            <button class="btn btn-sm btn-primary" @click="showAddEcheance = !showAddEcheance"><i class="fa fa-plus me-1"></i>Ajouter</button>
+            <button class="btn btn-sm btn-outline-orange" @click="showAddEcheance = !showAddEcheance"><i class="fa fa-plus me-1"></i>Ajouter</button>
         </div>
         <div class="card mb-3" x-show="showAddEcheance">
             <div class="card-body">
@@ -173,7 +177,7 @@
                     <div class="col-md-6"><input class="form-control form-control-sm" x-model="newEcheance.description" placeholder="Description"></div>
                 </div>
                 <div class="mt-2 text-end">
-                    <button class="btn btn-sm btn-primary" @click="addEcheance()">Enregistrer</button>
+                    <button class="btn btn-sm btn-outline-orange" @click="addEcheance()">Enregistrer</button>
                     <button class="btn btn-sm btn-outline-secondary ms-1" @click="showAddEcheance = false">Annuler</button>
                 </div>
             </div>
@@ -181,12 +185,12 @@
         <div class="card">
             <div class="card-body p-0">
                 <template x-if="echeances.length === 0">
-                    <div class="text-center py-4 text-muted small">Aucune échéance</div>
+                    <div class="text-center py-4 text-muted small fst-italic">Aucune échéance</div>
                 </template>
                 <template x-for="e in echeances" :key="e.id">
                     <div class="d-flex align-items-center gap-3 px-4 py-3 border-bottom">
                         <div class="text-center flex-shrink-0" style="width:48px">
-                            <div class="fw-bold small" :style="`color:${e.joursRestants <= 7 ? '#EF4444' : e.joursRestants <= 14 ? '#F97316' : '#374151'}`" x-text="e.joursRestants + 'j'"></div>
+                            <div class="fw-bold small" :style="`color:${e.urgence ? e.urgence.couleur : '#374151'}`" x-text="e.joursRestants + 'j'"></div>
                         </div>
                         <div class="flex-grow-1">
                             <div class="fw-semibold small" x-text="e.type"></div>
@@ -209,7 +213,7 @@
     <div class="tab-pane fade" id="tab-chronologie">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h6 class="mb-0">Chronologie</h6>
-            <button class="btn btn-sm btn-primary" @click="showAddChrono = !showAddChrono"><i class="fa fa-plus me-1"></i>Ajouter</button>
+            <button class="btn btn-sm btn-outline-orange" @click="showAddChrono = !showAddChrono"><i class="fa fa-plus me-1"></i>Ajouter</button>
         </div>
         <div class="card mb-3" x-show="showAddChrono">
             <div class="card-body">
@@ -232,7 +236,7 @@
                     <div class="col-12"><textarea class="form-control form-control-sm" x-model="newChrono.description" rows="2" placeholder="Description..."></textarea></div>
                 </div>
                 <div class="mt-2 text-end">
-                    <button class="btn btn-sm btn-primary" @click="addChrono()">Enregistrer</button>
+                    <button class="btn btn-sm btn-outline-orange" @click="addChrono()">Enregistrer</button>
                     <button class="btn btn-sm btn-outline-secondary ms-1" @click="showAddChrono = false">Annuler</button>
                 </div>
             </div>
@@ -240,7 +244,7 @@
         <div class="card">
             <div class="card-body">
             <template x-if="chronologie.length === 0">
-                <div class="text-center py-4 text-muted small">Aucun événement</div>
+                <div class="text-center py-4 text-muted small fst-italic">Aucun événement</div>
             </template>
             <template x-for="e in chronologie" :key="e.id">
                 <div class="d-flex gap-3 chrono-item">
@@ -271,7 +275,7 @@
             <div class="card-body p-0">
                 <div class="text-center py-4 text-muted small">
                     <i class="fa fa-folder-open fa-2x mb-2 d-block"></i>
-                    Gestion documentaire (upload à implémenter)
+                    <em>Gestion documentaire (upload à implémenter)</em>
                 </div>
             </div>
         </div>
@@ -281,12 +285,12 @@
     <div class="tab-pane fade" id="tab-actes">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h6 class="mb-0">Actes générés</h6>
-            <a href="{{ path('acte_index') }}" class="btn btn-sm btn-primary"><i class="fa fa-plus me-1"></i>Générer un acte</a>
+            <a href="{{ path('acte_index') }}" class="btn btn-sm btn-outline-orange"><i class="fa fa-plus me-1"></i>Générer un acte</a>
         </div>
         <div class="card">
             <div class="card-body p-0">
                 <template x-if="actes.length === 0">
-                    <div class="text-center py-4 text-muted small">Aucun acte généré</div>
+                    <div class="text-center py-4 text-muted small fst-italic">Aucun acte généré</div>
                 </template>
                 <template x-for="a in actes" :key="a.id">
                     <div class="d-flex justify-content-between align-items-center px-4 py-3 border-bottom">
@@ -296,7 +300,7 @@
                         </div>
                         <div class="btn-group btn-group-sm">
                             <a :href="`/api/actes-generes/${a.id}/pdf`" class="btn btn-outline-danger"><i class="fa fa-file-pdf"></i> PDF</a>
-                            <a :href="`/api/actes-generes/${a.id}/docx`" class="btn btn-outline-primary"><i class="fa fa-file-word"></i> Word</a>
+                            <a :href="`/api/actes-generes/${a.id}/docx`" class="btn btn-outline-orange"><i class="fa fa-file-word"></i> Word</a>
                         </div>
                     </div>
                 </template>

@@ -22,3 +22,4 @@ ENV DATABASE_URL="postgresql://postgres:postgres@database:5432/crm_cabinet?serve
 RUN php bin/console cache:clear --env=prod
 RUN php bin/console asset-map:compile --env=prod
 RUN chmod -R 777 var
+RUN mkdir -p /app/public/uploads/logo && chmod -R 777 /app/public/uploads

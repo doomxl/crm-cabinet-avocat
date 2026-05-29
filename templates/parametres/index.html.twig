@@ -8,13 +8,18 @@
 {% block content %}
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h4 class="mb-0 fw-bold"><i class="fa fa-gear me-2" style="color:var(--orange)"></i>Paramètres</h4>
+    <h4 class="mb-0 fw-bold">Paramètres</h4>
 </div>
 
 <ul class="nav nav-tabs mb-4" id="parametresTabs" role="tablist">
     <li class="nav-item" role="presentation">
         <button class="nav-link active" id="cabinet-tab" data-bs-toggle="tab" data-bs-target="#cabinet-pane" type="button" role="tab">
             <i class="fa fa-building me-1"></i> Paramètres du cabinet
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="matieres-tab" data-bs-toggle="tab" data-bs-target="#matieres-pane" type="button" role="tab">
+            <i class="fa fa-list me-1"></i> Matières
         </button>
     </li>
     <li class="nav-item" role="presentation">
@@ -83,6 +88,35 @@
 
             <div class="col-lg-6">
                 <div class="card mb-4">
+                    <div class="card-header fw-semibold"><i class="fa fa-image me-2" style="color:var(--orange)"></i>Logo du cabinet</div>
+                    <div class="card-body">
+                        <div class="d-flex align-items-start gap-3 mb-3">
+                            <div class="border rounded d-flex align-items-center justify-content-center bg-light flex-shrink-0" style="width:96px;height:96px;overflow:hidden">
+                                <template x-if="form.logo">
+                                    <img :src="form.logo" alt="Logo" style="max-width:100%;max-height:100%;object-fit:contain">
+                                </template>
+                                <template x-if="!form.logo">
+                                    <i class="fa fa-image fa-2x text-muted"></i>
+                                </template>
+                            </div>
+                            <div class="flex-grow-1">
+                                <input type="file" x-ref="logoInput" id="logoFileInput" style="display:none" accept=".jpg,.jpeg,.png,.gif,.webp,.svg">
+                                <div class="d-flex gap-2 mb-1">
+                                    <button type="button" class="btn btn-outline-orange btn-sm" @click="$refs.logoInput.click()" :disabled="logoUploading">
+                                        <i class="fa fa-upload me-1"></i>Choisir un logo
+                                    </button>
+                                    <button x-show="form.logo" type="button" class="btn btn-sm btn-outline-orange" @click="supprimerLogo()">
+                                        <i class="fa fa-trash me-1"></i>Supprimer
+                                    </button>
+                                </div>
+                                <div class="small text-muted">Formats : JPG, PNG, GIF, WebP, SVG — max 2 Mo</div>
+                            </div>
+                        </div>
+                        <div x-show="logoUploading" class="text-muted small fst-italic"><i class="fa fa-spinner fa-spin me-1"></i>Envoi en cours…</div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
                     <div class="card-header fw-semibold"><i class="fa fa-user-tie me-2" style="color:var(--orange)"></i>Avocat titulaire</div>
                     <div class="card-body">
                         <p class="small text-muted mb-3">Ces informations sont utilisées dans la génération des actes (<code>{{ '{{avocat_nom}}' }}</code>, <code>{{ '{{avocat_barreau}}' }}</code>, <code>{{ '{{avocat_numero}}' }}</code>).</p>
@@ -115,7 +149,81 @@
     </div>
     </div>
 
-    {# ── Tab 2 : Thème ── #}
+    {# ── Tab 2 : Matières ── #}
+    <div class="tab-pane fade" id="matieres-pane" role="tabpanel" aria-labelledby="matieres-tab">
+    <div x-data="matieresPage()" x-init="init()">
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <p class="text-muted small mb-0">Gérez la liste des matières disponibles dans les dossiers. La couleur associée est utilisée partout dans l'application.</p>
+            <button class="btn btn-outline-orange" @click="sauvegarder()" :disabled="saving">
+                <i class="fa fa-save me-1"></i>
+                <span x-text="saving ? 'Enregistrement...' : 'Enregistrer'"></span>
+            </button>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-lg-7">
+                <div class="card">
+                    <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
+                        <span><i class="fa fa-list me-2" style="color:var(--orange)"></i>Liste des matières</span>
+                        <span class="badge bg-secondary" x-text="matieres.length + ' matière(s)'"></span>
+                    </div>
+                    <div class="card-body p-0">
+                        <template x-if="matieres.length === 0">
+                            <div class="text-center py-4 text-muted small">Aucune matière définie</div>
+                        </template>
+                        <template x-for="(m, idx) in matieres" :key="idx">
+                            <div class="d-flex align-items-center gap-3 px-3 py-2 border-bottom">
+                                <input type="color" class="form-control form-control-color flex-shrink-0"
+                                       x-model="m.couleur" style="width:32px;height:32px;padding:2px;cursor:pointer;">
+                                <span class="badge flex-shrink-0" :style="'background:' + m.couleur + ';color:#F8FAFC;min-width:120px'" x-text="m.label"></span>
+                                <input type="text" class="form-control form-control-sm" x-model="m.label" placeholder="Nom de la matière">
+                                <button class="btn btn-link btn-sm p-1 flex-shrink-0" style="color:#D1D5DB" @click="supprimer(idx)" title="Supprimer">
+                                    <i class="fa fa-trash fa-sm"></i>
+                                </button>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-5">
+                <div class="card">
+                    <div class="card-header fw-semibold"><i class="fa fa-plus me-2" style="color:var(--orange)"></i>Ajouter une matière</div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Nom de la matière</label>
+                            <input type="text" class="form-control" x-model="newLabel" placeholder="Ex: Droit de la santé" @keydown.enter="ajouter()">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Couleur</label>
+                            <div class="d-flex gap-2 align-items-center">
+                                <input type="color" class="form-control form-control-color" x-model="newCouleur" style="width:44px;height:36px;">
+                                <span class="small text-muted" x-text="newCouleur"></span>
+                            </div>
+                        </div>
+                        <button class="btn btn-outline-orange w-100" @click="ajouter()" :disabled="!newLabel.trim()">
+                            <i class="fa fa-plus me-1"></i>Ajouter
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card mt-3">
+                    <div class="card-header fw-semibold"><i class="fa fa-rotate-left me-2 text-muted"></i>Réinitialiser</div>
+                    <div class="card-body">
+                        <p class="small text-muted">Restaure la liste par défaut (Droit familial, pénal, affaires…).</p>
+                        <button class="btn btn-outline-secondary btn-sm" @click="reinitialiser()">
+                            <i class="fa fa-rotate-left me-1"></i>Réinitialiser aux valeurs par défaut
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    </div>
+
+    {# ── Tab 3 : Thème ── #}
     <div class="tab-pane fade" id="theme-pane" role="tabpanel" aria-labelledby="theme-tab">
     <div x-data="themePage()" x-init="init()">
 
@@ -166,6 +274,30 @@
                                     <div class="d-flex align-items-center gap-1 p-1 rounded border bg-light">
                                         <input type="color" class="form-control form-control-color flex-shrink-0" x-model="s.couleur" style="width:26px;height:26px;padding:1px;cursor:pointer;">
                                         <span class="badge" :style="'background:' + s.couleur" x-text="s.label" style="font-size:0.65rem;color:#F8FAFC"></span>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header fw-semibold d-flex justify-content-between align-items-center py-2">
+                        <span class="small"><i class="fa fa-clock me-2 text-dark"></i>Niveaux d'urgence des échéances</span>
+                        <div class="d-flex gap-1">
+                            <button class="btn btn-xs btn-outline-secondary" @click="reinitialiserEcheances()" data-bs-toggle="tooltip" title="Réinitialiser aux couleurs par défaut" x-init="new bootstrap.Tooltip($el)"><i class="fa fa-rotate-left"></i></button>
+                            <button class="btn btn-xs btn-outline-orange" @click="sauvegarderEcheances()" :disabled="savingEcheance">
+                                <i class="fa fa-floppy-disk flash-orange"></i> <span x-text="savingEcheance ? '...' : 'Enregistrer'"></span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body py-2">
+                        <div class="row g-2">
+                            <template x-for="n in niveauxEcheance" :key="n.key">
+                                <div class="col-6">
+                                    <div class="d-flex align-items-center gap-1 p-1 rounded border bg-light">
+                                        <input type="color" class="form-control form-control-color flex-shrink-0" x-model="n.couleur" style="width:26px;height:26px;padding:1px;cursor:pointer;">
+                                        <span class="badge" :style="'background:' + n.couleur" x-text="n.label" style="font-size:0.65rem;color:#F8FAFC;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100px"></span>
                                     </div>
                                 </div>
                             </template>
@@ -263,6 +395,7 @@
 function parametresPage() {
     return {
         saving: false,
+        logoUploading: false,
         form: {
             nom: '',
             adresse: '',
@@ -275,6 +408,7 @@ function parametresPage() {
             avocatNom: '',
             avocatBarreau: '',
             avocatNumero: '',
+            logo: null,
         },
 
         get apercuSignature() {
@@ -300,7 +434,44 @@ function parametresPage() {
                 this.form.avocatNom         = d.avocatNom         ?? '';
                 this.form.avocatBarreau     = d.avocatBarreau     ?? '';
                 this.form.avocatNumero      = d.avocatNumero      ?? '';
+                this.form.logo              = d.logo              ?? null;
             }
+            this.$nextTick(() => {
+                const input = this.$refs.logoInput;
+                if (input) input.addEventListener('change', (e) => this.uploadLogo(e));
+            });
+        },
+
+        async uploadLogo(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            if (file.size > 2 * 1024 * 1024) { notify('Fichier trop volumineux (max 2 Mo)', 'error'); event.target.value = ''; return; }
+            const allowed = ['jpg','jpeg','png','gif','webp','svg'];
+            const ext = file.name.split('.').pop().toLowerCase();
+            if (!allowed.includes(ext)) { notify('Extension non autorisée', 'error'); event.target.value = ''; return; }
+            this.logoUploading = true;
+            const fd = new FormData();
+            fd.append('logo', file, file.name);
+            try {
+                const resp = await fetch('/api/config/logo', {method: 'POST', body: fd});
+                const text = await resp.text();
+                let data;
+                try { data = JSON.parse(text); } catch(_) {
+                    notify('Erreur serveur ' + resp.status, 'error');
+                    this.logoUploading = false; event.target.value = ''; return;
+                }
+                if (data.success) { this.form.logo = data.data.logo; notify('Logo enregistré', 'success'); }
+                else notify(data.error || 'Erreur', 'error');
+            } catch(e) { notify('Erreur : ' + e.message, 'error'); console.error(e); }
+            this.logoUploading = false;
+            event.target.value = '';
+        },
+
+        async supprimerLogo() {
+            if (!confirm('Supprimer le logo ?')) return;
+            const data = await api.delete('/api/config/logo');
+            if (data.success) { this.form.logo = null; notify('Logo supprimé'); }
+            else notify(data.error || 'Erreur', 'error');
         },
 
         async sauvegarder() {
@@ -310,7 +481,8 @@ function parametresPage() {
                 const data = await api.put('/api/config', this.form);
                 if (data.success) {
                     notify('Paramètres enregistrés');
-                    document.getElementById('cabinet-name').textContent = this.form.nom;
+                    const el = document.getElementById('cabinet-name');
+                    if (el) el.textContent = this.form.nom;
                 } else {
                     notify(data.error || 'Erreur lors de la sauvegarde', 'error');
                 }
@@ -322,31 +494,89 @@ function parametresPage() {
     };
 }
 
+function matieresPage() {
+    const DEFAUTS = [
+        {label: 'Droit familial',      couleur: '#F472B6'},
+        {label: 'Droit pénal',         couleur: '#F87171'},
+        {label: 'Droit des affaires',  couleur: '#60A5FA'},
+        {label: 'Droit social',        couleur: '#FDBA74'},
+        {label: 'Droit immobilier',    couleur: '#34D399'},
+        {label: 'Droit administratif', couleur: '#A78BFA'},
+        {label: 'Droit international', couleur: '#22D3EE'},
+        {label: 'Autres',              couleur: '#9CA3AF'},
+    ];
+    return {
+        matieres: [],
+        newLabel: '',
+        newCouleur: '#F97316',
+        saving: false,
+
+        async init() {
+            const data = await api.get('/api/config');
+            if (data.success) {
+                this.matieres = JSON.parse(JSON.stringify(data.data.matieres ?? []));
+            }
+        },
+
+        ajouter() {
+            const label = this.newLabel.trim();
+            if (!label) return;
+            if (this.matieres.find(m => m.label.toLowerCase() === label.toLowerCase())) {
+                notify('Cette matière existe déjà', 'error');
+                return;
+            }
+            this.matieres.push({label, couleur: this.newCouleur});
+            this.newLabel = '';
+            this.newCouleur = '#F97316';
+        },
+
+        supprimer(idx) {
+            if (!confirm(`Supprimer la matière "${this.matieres[idx].label}" ?\n\nLes dossiers utilisant cette matière seront réaffectés à "Autres" lors de l'enregistrement.`)) return;
+            this.matieres.splice(idx, 1);
+        },
+
+        reinitialiser() {
+            if (!confirm('Réinitialiser la liste des matières aux valeurs par défaut ?\n\nATTENTION : les dossiers utilisant une matière absente de la liste par défaut seront automatiquement réaffectés à "Autres" lors de l\'enregistrement.')) return;
+            this.matieres = JSON.parse(JSON.stringify(DEFAUTS));
+            notify('Liste réinitialisée — cliquez sur Enregistrer pour confirmer', 'info');
+        },
+
+        async sauvegarder() {
+            const invalid = this.matieres.find(m => !m.label.trim());
+            if (invalid) { notify('Tous les noms de matière doivent être renseignés', 'error'); return; }
+            this.saving = true;
+            const data = await api.patch('/api/config', {matieres: this.matieres});
+            if (data.success) notify('Matières enregistrées', 'success');
+            else notify(data.error || 'Erreur', 'error');
+            this.saving = false;
+        },
+    };
+}
+
 function themePage() {
     return {
-        matieres:       {{ matieres|json_encode|raw }},
-        statuts:        {{ statuts|json_encode|raw }},
-        statutsActe:    {{ statutsActe|json_encode|raw }},
-        statutsFacture: {{ statutsFacture|json_encode|raw }},
-        conflits:       {{ conflits|json_encode|raw }},
+        matieres:        {{ matieres|json_encode|raw }},
+        statuts:         {{ statuts|json_encode|raw }},
+        statutsActe:     {{ statutsActe|json_encode|raw }},
+        statutsFacture:  {{ statutsFacture|json_encode|raw }},
+        conflits:        {{ conflits|json_encode|raw }},
+        niveauxEcheance: {{ niveauxEcheance|json_encode|raw }},
         savingMatieres: false,
         savingStatuts: false,
         savingStatutsActe: false,
         savingStatutsFacture: false,
         savingConflits: false,
+        savingEcheance: false,
 
         init() {},
 
         reinitialiserMatieres() {
-            this.matieres = this.matieres.map(m => ({ ...m, couleur: m.defaut }));
-            notify('Couleurs réinitialisées — cliquez sur Enregistrer pour confirmer', 'info');
+            notify('Pour gérer les matières, utilisez l\'onglet "Matières"', 'info');
         },
 
         async sauvegarderMatieres() {
             this.savingMatieres = true;
-            const couleursMatiere = {};
-            this.matieres.forEach(m => { couleursMatiere[m.label] = m.couleur; });
-            const data = await api.patch('/api/config', { couleursMatiere });
+            const data = await api.patch('/api/config', {matieres: this.matieres});
             if (data.success) notify('Couleurs des matières enregistrées', 'success');
             else notify(data.error || 'Erreur', 'error');
             this.savingMatieres = false;
@@ -410,6 +640,21 @@ function themePage() {
             if (data.success) notify('Couleurs des conflits enregistrées', 'success');
             else notify(data.error || 'Erreur', 'error');
             this.savingConflits = false;
+        },
+
+        reinitialiserEcheances() {
+            this.niveauxEcheance = this.niveauxEcheance.map(n => ({ ...n, couleur: n.defaut }));
+            notify('Couleurs réinitialisées — cliquez sur Enregistrer pour confirmer', 'info');
+        },
+
+        async sauvegarderEcheances() {
+            this.savingEcheance = true;
+            const couleursEcheance = {};
+            this.niveauxEcheance.forEach(n => { couleursEcheance[n.key] = n.couleur; });
+            const data = await api.patch('/api/config', { couleursEcheance });
+            if (data.success) notify('Couleurs des échéances enregistrées', 'success');
+            else notify(data.error || 'Erreur', 'error');
+            this.savingEcheance = false;
         },
     };
 }

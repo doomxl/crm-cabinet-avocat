@@ -2,7 +2,6 @@
 
 namespace App\Controller\Web;
 
-use App\Enum\MatiereEnum;
 use App\Enum\StatutActeEnum;
 use App\Enum\StatutDossierEnum;
 use App\Enum\StatutFactureEnum;
@@ -17,13 +16,7 @@ class ThemeController extends AbstractController
     public function index(CabinetConfigRepository $repo): Response
     {
         $config = $repo->getConfig();
-        $couleursMatiere = $config->getCouleursMatiere();
-
-        $matieres = array_map(fn(MatiereEnum $m) => [
-            'label'   => $m->label(),
-            'couleur' => $couleursMatiere[$m->value] ?? $m->couleur(),
-            'defaut'  => $m->couleur(),
-        ], MatiereEnum::cases());
+        $matieres = $config->getMatieres();
 
         $couleursStatut = $config->getCouleursStatut();
         $statuts = array_map(fn(StatutDossierEnum $s) => [

@@ -81,7 +81,8 @@
                             <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 alert-circle-sm">
                                 <i class="fa fa-exclamation flash-color" style="font-size:0.75rem"></i>
                             </div>
-                            <span class="small" x-text="alerte.message"></span>
+                            <span class="small flex-grow-1" x-text="alerte.message"></span>
+                            <a x-show="alerte.url" :href="alerte.url" class="btn btn-xs btn-outline-orange flex-shrink-0">Voir tout</a>
                         </div>
                     </template>
                 </div>

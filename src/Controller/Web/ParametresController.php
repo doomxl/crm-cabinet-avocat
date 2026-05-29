@@ -2,7 +2,6 @@
 
 namespace App\Controller\Web;
 
-use App\Enum\MatiereEnum;
 use App\Enum\StatutActeEnum;
 use App\Enum\StatutDossierEnum;
 use App\Enum\StatutFactureEnum;
@@ -18,12 +17,7 @@ class ParametresController extends AbstractController
     {
         $config = $repo->getConfig();
 
-        $couleursMatiere = $config->getCouleursMatiere();
-        $matieres = array_map(fn(MatiereEnum $m) => [
-            'label'   => $m->label(),
-            'couleur' => $couleursMatiere[$m->value] ?? $m->couleur(),
-            'defaut'  => $m->couleur(),
-        ], MatiereEnum::cases());
+        $matieres = $config->getMatieres();
 
         $couleursStatut = $config->getCouleursStatut();
         $statuts = array_map(fn(StatutDossierEnum $s) => [
@@ -54,12 +48,30 @@ class ParametresController extends AbstractController
             'defaut'  => $defaut,
         ], array_keys($defaultsConflit), $defaultsConflit);
 
+        $niveauxLabels = [
+            'expire'    => 'Expirée',
+            'critique'  => 'Critique (0–3 j)',
+            'urgent'    => 'Urgent (4–7 j)',
+            'attention' => 'Attention (8–14 j)',
+            'normal'    => 'Normal (15–30 j)',
+            'lointain'  => 'Lointain (> 30 j)',
+        ];
+        $couleursEcheance = $config->getCouleursEcheance();
+        $defautsEcheance  = \App\Entity\CabinetConfig::getEcheanceDefauts();
+        $niveauxEcheance = array_map(fn($key, $label) => [
+            'key'     => $key,
+            'label'   => $label,
+            'couleur' => $couleursEcheance[$key],
+            'defaut'  => $defautsEcheance[$key],
+        ], array_keys($niveauxLabels), $niveauxLabels);
+
         return $this->render('parametres/index.html.twig', [
-            'matieres'       => $matieres,
-            'statuts'        => $statuts,
-            'statutsActe'    => $statutsActe,
-            'statutsFacture' => $statutsFacture,
-            'conflits'       => $conflits,
+            'matieres'        => $matieres,
+            'statuts'         => $statuts,
+            'statutsActe'     => $statutsActe,
+            'statutsFacture'  => $statutsFacture,
+            'conflits'        => $conflits,
+            'niveauxEcheance' => $niveauxEcheance,
         ]);
     }
 }

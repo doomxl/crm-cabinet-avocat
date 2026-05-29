@@ -2,7 +2,6 @@
 
 namespace App\Entity;
 
-use App\Enum\MatiereEnum;
 use App\Enum\StatutDossierEnum;
 use App\Enum\TypeConventionEnum;
 use App\Enum\TypePartieAdverseEnum;
@@ -21,6 +20,9 @@ class Dossier
     #[ORM\Column(type: 'bigint')]
     private ?int $id = null;
 
+    #[ORM\Column(name: 'numero_dossier', type: 'string', length: 30, unique: true, nullable: true)]
+    private ?string $numeroDossier = null;
+
     #[ORM\ManyToOne(targetEntity: Client::class, inversedBy: 'dossiers')]
     #[ORM\JoinColumn(name: 'client_id', nullable: false, onDelete: 'RESTRICT')]
     private ?Client $client = null;
@@ -34,8 +36,8 @@ class Dossier
     #[ORM\Column(name: 'statut', type: 'string', enumType: StatutDossierEnum::class)]
     private StatutDossierEnum $statut = StatutDossierEnum::En_cours;
 
-    #[ORM\Column(name: 'matiere', type: 'string', enumType: MatiereEnum::class, nullable: true)]
-    private ?MatiereEnum $matiere = null;
+    #[ORM\Column(name: 'matiere', type: 'string', length: 100, nullable: true)]
+    private ?string $matiere = null;
 
     #[ORM\Column(name: 'notes', type: 'text', nullable: true)]
     private ?string $notes = null;
@@ -114,6 +116,8 @@ class Dossier
     }
 
     public function getId(): ?int { return $this->id; }
+    public function getNumeroDossier(): ?string { return $this->numeroDossier; }
+    public function setNumeroDossier(?string $numeroDossier): static { $this->numeroDossier = $numeroDossier; return $this; }
     public function getClient(): ?Client { return $this->client; }
     public function setClient(?Client $client): static { $this->client = $client; return $this; }
     public function getTitre(): string { return $this->titre; }
@@ -122,8 +126,8 @@ class Dossier
     public function setCouleur(string $couleur): static { $this->couleur = $couleur; return $this; }
     public function getStatut(): StatutDossierEnum { return $this->statut; }
     public function setStatut(StatutDossierEnum $statut): static { $this->statut = $statut; return $this; }
-    public function getMatiere(): ?MatiereEnum { return $this->matiere; }
-    public function setMatiere(?MatiereEnum $matiere): static { $this->matiere = $matiere; return $this; }
+    public function getMatiere(): ?string { return $this->matiere; }
+    public function setMatiere(?string $matiere): static { $this->matiere = $matiere ?: null; return $this; }
     public function getNotes(): ?string { return $this->notes; }
     public function setNotes(?string $notes): static { $this->notes = $notes; return $this; }
     public function getDateOuverture(): \DateTimeImmutable { return $this->dateOuverture; }
@@ -156,12 +160,13 @@ class Dossier
     {
         return [
             'id' => $this->id,
+            'numeroDossier' => $this->numeroDossier,
             'clientId' => $this->client?->getId(),
             'clientNom' => $this->client?->getNomComplet(),
             'titre' => $this->titre,
             'couleur' => $this->couleur,
             'statut' => $this->statut->value,
-            'matiere' => $this->matiere?->value,
+            'matiere' => $this->matiere,
             'notes' => $this->notes,
             'dateOuverture' => $this->dateOuverture->format('Y-m-d'),
             'partieAdverseNom' => $this->partieAdverseNom,

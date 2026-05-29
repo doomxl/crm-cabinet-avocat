@@ -34,7 +34,7 @@
                 <select id="matiereFilter" class="form-select form-select-sm">
                     <option value="">Toutes les matières</option>
                     {% for matiere in matieres %}
-                    <option value="{{ matiere.value }}">{{ matiere.label() }}</option>
+                    <option value="{{ matiere.label }}">{{ matiere.label }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -51,6 +51,7 @@
         <table class="table text-nowrap align-middle table-hover mb-0">
             <thead class="table-light">
                 <tr>
+                    <th>N° Dossier</th>
                     <th>Dossier</th>
                     <th>Client</th>
                     <th>Matière</th>
@@ -61,7 +62,7 @@
                 </tr>
             </thead>
             <tbody id="dossiersBody">
-                <tr><td colspan="7" class="text-center py-4 text-muted fst-italic small"><i class="fa fa-spinner fa-spin me-2"></i>Chargement en cours...</td></tr>
+                <tr><td colspan="8" class="text-center py-4 text-muted fst-italic small"><i class="fa fa-spinner fa-spin me-2"></i>Chargement en cours...</td></tr>
             </tbody>
         </table>
     </div>
@@ -89,7 +90,7 @@ function statutBadge(statut) {
 function renderTable(dossiers) {
     const tbody = document.getElementById('dossiersBody');
     if (!dossiers.length) {
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">Aucun dossier</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-muted">Aucun dossier</td></tr>';
         return;
     }
     tbody.innerHTML = dossiers.map(d => {
@@ -97,6 +98,7 @@ function renderTable(dossiers) {
         const partieAdverse = d.partieAdverseEntreprise || [d.partieAdversePrenom, d.partieAdverseNom].filter(Boolean).join(' ') || '';
         return `
         <tr>
+            <td><span class="badge bg-light text-dark border font-monospace small" style="font-size:0.7rem">${d.numeroDossier || '—'}</span></td>
             <td>
                 <div class="d-flex align-items-center gap-2">
                     <!--div class="rounded flex-shrink-0" style="width:4px;height:36px;background:${d.couleur}"></div-->
